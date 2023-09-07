@@ -46,11 +46,8 @@ public class DebugEntry implements CommandFunction.Entry {
         MutableComponent processedTemplate = Component.empty();
 
         int lastEnd = 0;
-        boolean foundAnything = false;
 
         while (matcher.find()) {
-            foundAnything = true;
-
             processedTemplate.append(template.substring(lastEnd, matcher.start()));
             lastEnd = matcher.end();
 
@@ -64,8 +61,8 @@ public class DebugEntry implements CommandFunction.Entry {
             processedTemplate.append(replacement);
         }
 
-        if (!foundAnything)
-            return Component.literal(template);
+        if (lastEnd < template.length())
+            processedTemplate.append(template.substring(lastEnd));
 
         return processedTemplate;
     }
