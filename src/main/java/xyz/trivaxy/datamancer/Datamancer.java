@@ -30,11 +30,15 @@ public class Datamancer implements ModInitializer {
         LOGGER.warn(message);
     }
 
-    public static void logException(String message, Throwable throwable) {
+    public static void logError(String message) {
+        LOGGER.error(message);
+    }
+
+    public static void logError(String message, Throwable throwable) {
         LOGGER.error(message + ": ", throwable);
     }
 
-    public static void logException(Throwable throwable) {
+    public static void logError(Throwable throwable) {
         LOGGER.error(throwable.toString());
     }
 }

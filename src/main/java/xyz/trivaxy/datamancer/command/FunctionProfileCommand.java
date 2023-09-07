@@ -64,7 +64,7 @@ public class FunctionProfileCommand extends DatamancerCommand {
                                 report.writeToFile();
                             } catch (Exception e) {
                                 replyFailure(context.getSource(), Component.literal("Failed to write report to file"));
-                                Datamancer.logException("Could not write function report to " + FunctionReport.OUTPUT_PATH, e);
+                                Datamancer.logError("Could not write function report to " + FunctionReport.OUTPUT_PATH, e);
                                 return -1;
                             }
 

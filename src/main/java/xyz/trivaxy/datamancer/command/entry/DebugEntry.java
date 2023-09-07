@@ -36,8 +36,8 @@ public class DebugEntry implements CommandFunction.Entry {
                 if (player.hasPermissions(2))
                     player.sendSystemMessage(result);
             }
-        } catch (PlaceholderException e) {
-            Datamancer.logException(e);
+        } catch (Exception e) {
+            Datamancer.logError("Could not expand placeholder: " + e.getMessage());
         }
     }
 
