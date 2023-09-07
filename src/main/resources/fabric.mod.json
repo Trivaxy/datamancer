@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "id": "datamancer",
+  "version": "${version}",
+  "name": "Datamancer",
+  "description": "The must-have tool for every datapack developer!",
+  "authors": [
+    "Trivaxy"
+  ],
+  "contact": {},
+  "license": "MIT",
+  "icon": "assets/datamancer/icon.png",
+  "environment": "*",
+  "entrypoints": {
+    "client": [
+      "xyz.trivaxy.datamancer.client.DatamancerClient"
+    ],
+    "main": [
+      "xyz.trivaxy.datamancer.Datamancer"
+    ]
+  },
+  "mixins": [
+    "datamancer.mixins.json"
+  ],
+  "accessWidener": "datamancer.accesswidener",
+  "depends": {
+    "fabricloader": ">=0.14.22",
+    "fabric": ">=0.88.1+1.20.2",
+    "minecraft": ">=1.20.2-alpha.23.35.a"
+  }
+}

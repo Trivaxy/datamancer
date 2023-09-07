@@ -1,0 +1,19 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "xyz.trivaxy.datamancer.mixin",
+  "compatibilityLevel": "JAVA_17",
+  "mixins": [
+    "CommandFunctionMixin",
+    "ExecutionContextMixin",
+    "FunctionEntryMixin",
+    "PlayerMixin"
+  ],
+  "client": [
+    "PauseMixin",
+    "PauseScreenMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}
