@@ -7,5 +7,5 @@ import net.minecraft.network.chat.Component;
 @FunctionalInterface
 public interface PlaceholderProcessor {
 
-    Component process(CommandSourceStack source, Arguments arguments) throws PlaceholderException, CommandSyntaxException;
+    Component process(CommandSourceStack source, Placeholder.Arguments arguments) throws PlaceholderException, CommandSyntaxException;
 }

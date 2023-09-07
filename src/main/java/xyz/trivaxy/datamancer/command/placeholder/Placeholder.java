@@ -177,4 +177,18 @@ public class Placeholder {
 
         return result;
     }
+
+    @SuppressWarnings("unchecked")
+    public static class Arguments {
+
+        private final Object[] arguments;
+
+        public Arguments(Object[] arguments) {
+            this.arguments = arguments;
+        }
+
+        public <T> T get(int index) {
+            return (T) arguments[index];
+        }
+    }
 }
