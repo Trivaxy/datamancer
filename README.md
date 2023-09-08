@@ -4,7 +4,7 @@
 
 Datamancer is a Minecraft mod targetting Fabric for versions 1.20 and above. Its purpose is to boost productivity by providing utilities and features that aid in the development of datapacks and command creations.
 
-Getting started is simple! Just install the mod on either CurseForge or Modrinth and then head over to the wiki page to get started.
+Getting started is simple! Just install the mod on either CurseForge or Modrinth and then head over to the [wiki page](https://github.com/Trivaxy/datamancer/wiki) to get going.
 
 # Contributions
 
