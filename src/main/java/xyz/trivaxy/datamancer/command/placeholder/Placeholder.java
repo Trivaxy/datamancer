@@ -3,6 +3,7 @@ package xyz.trivaxy.datamancer.command.placeholder;
 import com.mojang.brigadier.StringReader;
 import com.mojang.brigadier.arguments.ArgumentType;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
+import net.minecraft.ChatFormatting;
 import net.minecraft.advancements.critereon.NbtPredicate;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.arguments.*;
@@ -19,6 +20,8 @@ import net.minecraft.server.commands.data.BlockDataAccessor;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.properties.Property;
 import net.minecraft.world.level.storage.CommandStorage;
 import net.minecraft.world.scores.Objective;
 
@@ -106,6 +109,18 @@ public class Placeholder {
                             return Component.literal("None");
 
                         return joinComponents(entities.stream().map(Entity::getDisplayName).collect(Collectors.toList()), ", ");
+                    }),
+            "state", new PlaceholderBuilder()
+                    .argument(BlockPosArgument.blockPos())
+                    .process((context, argument) -> {
+                        Coordinates coords = argument.get(0);
+                        BlockPos pos = coords.getBlockPos(context);
+                        ServerLevel level = context.getLevel();
+
+                        if (!level.isLoaded(pos))
+                            return Component.literal("Unloaded");
+
+                        return prettyPrintBlockState(level.getBlockState(pos));
                     })
     );
 
@@ -174,6 +189,29 @@ public class Placeholder {
             if (i < components.size() - 1)
                 result.append(separator);
         }
+
+        return result;
+    }
+
+    private static Component prettyPrintBlockState(BlockState state) {
+        MutableComponent result = state.getBlock().getName().withStyle(ChatFormatting.RED);
+        List<Property<?>> properties = state.getProperties().stream().toList();
+
+        if (properties.isEmpty())
+            return result;
+
+        result.append(Component.literal("[").withStyle(ChatFormatting.WHITE));
+
+        for (int i = 0; i < properties.size(); i++) {
+            result.append(Component.literal(properties.get(i).getName()).withStyle(ChatFormatting.GRAY));
+            result.append(Component.literal("=").withStyle(ChatFormatting.WHITE));
+            result.append(Component.literal(state.getValue(properties.get(i)).toString()).withStyle(ChatFormatting.AQUA));
+
+            if (i < properties.size() - 1)
+                result.append(Component.literal(", "));
+        }
+
+        result.append(Component.literal("]").withStyle(ChatFormatting.WHITE));
 
         return result;
     }
