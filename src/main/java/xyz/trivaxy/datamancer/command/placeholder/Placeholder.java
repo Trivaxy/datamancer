@@ -23,6 +23,7 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.Property;
 import net.minecraft.world.level.storage.CommandStorage;
+import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.scores.Objective;
 
 import java.util.*;
@@ -121,6 +122,21 @@ public class Placeholder {
                             return Component.literal("Unloaded");
 
                         return prettyPrintBlockState(level.getBlockState(pos));
+                    }),
+            "at", new PlaceholderBuilder()
+                    .optional(EntityArgument.entities())
+                    .process((context, argument) -> {
+                        EntitySelector entitySelector = argument.get(0);
+
+                        if (entitySelector == null)
+                            return prettyPrintPositions(Collections.singletonList(context.getPosition()));
+
+                        List<? extends Entity> entities = entitySelector.findEntities(context);
+
+                        if (entities.isEmpty())
+                            return Component.literal("None");
+
+                        return prettyPrintPositions(entities.stream().map(Entity::position).collect(Collectors.toList()));
                     })
     );
 
@@ -208,10 +224,31 @@ public class Placeholder {
             result.append(Component.literal(state.getValue(properties.get(i)).toString()).withStyle(ChatFormatting.AQUA));
 
             if (i < properties.size() - 1)
-                result.append(Component.literal(", "));
+                result.append(Component.literal(", ").withStyle(ChatFormatting.WHITE));
         }
 
         result.append(Component.literal("]").withStyle(ChatFormatting.WHITE));
+
+        return result;
+    }
+
+    private static Component prettyPrintPositions(List<Vec3> positions) {
+        MutableComponent result = Component.empty();
+
+        for (int i = 0; i < positions.size(); i++) {
+            Vec3 pos = positions.get(i);
+
+            result.append(Component.literal("[").withStyle(ChatFormatting.WHITE));
+            result.append(Component.literal(String.format("%.4f", pos.x)).withStyle(ChatFormatting.AQUA));
+            result.append(Component.literal(", ").withStyle(ChatFormatting.WHITE));
+            result.append(Component.literal(String.format("%.4f", pos.y)).withStyle(ChatFormatting.AQUA));
+            result.append(Component.literal(", ").withStyle(ChatFormatting.WHITE));
+            result.append(Component.literal(String.format("%.4f", pos.z)).withStyle(ChatFormatting.AQUA));
+            result.append(Component.literal("]").withStyle(ChatFormatting.WHITE));
+
+            if (i < positions.size() - 1)
+                result.append(Component.literal(", ").withStyle(ChatFormatting.WHITE));
+        }
 
         return result;
     }
