@@ -5,15 +5,15 @@ import net.minecraft.commands.CommandFunction;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.server.ServerFunctionManager;
 import org.jetbrains.annotations.Nullable;
-import xyz.trivaxy.datamancer.profile.FunctionWatcher;
+import xyz.trivaxy.datamancer.profile.FunctionProfiler;
 
 import java.util.Deque;
 
 public class PopFunctionWatchEntry implements CommandFunction.Entry {
 
-    private FunctionWatcher watcher;
+    private FunctionProfiler watcher;
 
-    public PopFunctionWatchEntry(FunctionWatcher watcher) {
+    public PopFunctionWatchEntry(FunctionProfiler watcher) {
         this.watcher = watcher;
     }
 

@@ -8,7 +8,7 @@ import net.minecraft.resources.ResourceLocation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import xyz.trivaxy.datamancer.command.DatamancerCommand;
-import xyz.trivaxy.datamancer.profile.FunctionWatcher;
+import xyz.trivaxy.datamancer.profile.FunctionProfiler;
 
 public class Datamancer implements ModInitializer {
 
@@ -18,7 +18,7 @@ public class Datamancer implements ModInitializer {
     @Override
     public void onInitialize() {
         CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> DatamancerCommand.registerCommands(dispatcher, environment));
-        ServerLifecycleEvents.START_DATA_PACK_RELOAD.register(((server, resourceManager) -> FunctionWatcher.getInstance().restart()));
+        ServerLifecycleEvents.START_DATA_PACK_RELOAD.register(((server, resourceManager) -> FunctionProfiler.getInstance().restart()));
         ServerTickEvents.END_SERVER_TICK.register(MarkerInfoHandler::sendMarkerInfoToPlayers);
     }
 

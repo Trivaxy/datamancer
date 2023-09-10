@@ -8,13 +8,13 @@ import net.minecraft.network.chat.ClickEvent;
 import net.minecraft.network.chat.Component;
 import xyz.trivaxy.datamancer.Datamancer;
 import xyz.trivaxy.datamancer.profile.FunctionReport;
-import xyz.trivaxy.datamancer.profile.FunctionWatcher;
+import xyz.trivaxy.datamancer.profile.FunctionProfiler;
 
 import static net.minecraft.commands.Commands.literal;
 
 public class FunctionProfileCommand extends DatamancerCommand {
 
-    private static final FunctionWatcher WATCHER = FunctionWatcher.getInstance();
+    private static final FunctionProfiler PROFILER = FunctionProfiler.getInstance();
 
     @Override
     public void register(CommandDispatcher<CommandSourceStack> dispatcher, Commands.CommandSelection environment) {
@@ -22,43 +22,43 @@ public class FunctionProfileCommand extends DatamancerCommand {
                 .requires(source -> source.hasPermission(2))
                 .then(literal("start")
                         .executes(context -> {
-                            if (WATCHER.isEnabled()) {
+                            if (PROFILER.isEnabled()) {
                                 replyFailure(context.getSource(), Component.literal("Already watching! Use /fprofile stop to stop profiling, or /fprofile clear to erase profiling data and continue."));
                                 return 0;
                             }
 
-                            WATCHER.enable();
+                            PROFILER.enable();
                             replySuccess(context.getSource(), Component.literal("Profiler started!"));
                             return 1;
                         })
                 )
                 .then(literal("stop")
                         .executes(context -> {
-                            if (!WATCHER.isEnabled()) {
+                            if (!PROFILER.isEnabled()) {
                                 replyFailure(context.getSource(), Component.literal("Not watching any functions"));
                                 return 0;
                             }
 
-                            WATCHER.disable();
+                            PROFILER.disable();
                             replySuccess(context.getSource(), Component.literal("Profiler stopped!"));
                             return 1;
                         })
                 )
                 .then(literal("clear")
                         .executes(context -> {
-                            WATCHER.restart();
+                            PROFILER.restart();
                             replySuccess(context.getSource(), Component.literal("Cleared profiler data"));
                             return 0;
                         })
                 )
                 .then(literal("dump")
                         .executes(context -> {
-                            if (!WATCHER.isEnabled() || WATCHER.watchCount() == 0) {
+                            if (!PROFILER.isEnabled() || PROFILER.watchCount() == 0) {
                                 replyFailure(context.getSource(), Component.literal("Not watching any functions"));
                                 return 0;
                             }
 
-                            FunctionReport report = WATCHER.getReport();
+                            FunctionReport report = PROFILER.getReport();
 
                             try {
                                 report.writeToFile();
@@ -70,7 +70,7 @@ public class FunctionProfileCommand extends DatamancerCommand {
 
                             if (!context.getSource().isPlayer() || context.getSource().getServer().isDedicatedServer()) {
                                 replySuccess(context.getSource(), Component.literal("Report saved"));
-                                return WATCHER.watchCount();
+                                return PROFILER.watchCount();
                             }
 
                             Component fileLink = Component
@@ -80,7 +80,7 @@ public class FunctionProfileCommand extends DatamancerCommand {
 
                             replySuccess(context.getSource(), Component.literal("Report saved to ").append(fileLink));
 
-                            return WATCHER.watchCount();
+                            return PROFILER.watchCount();
                         })
                 )
         );

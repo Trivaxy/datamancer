@@ -9,7 +9,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import xyz.trivaxy.datamancer.command.entry.PopFunctionWatchEntry;
-import xyz.trivaxy.datamancer.profile.FunctionWatcher;
+import xyz.trivaxy.datamancer.profile.FunctionProfiler;
 
 import java.util.Deque;
 
@@ -19,11 +19,11 @@ public class FunctionEntryMixin {
 
     @Inject(method = "method_17914", at = @At(value = "INVOKE", target = "Ljava/lang/Math;min(II)I", shift = At.Shift.AFTER))
     private static void beforeFunctionProcessed(ServerFunctionManager.TraceCallbacks traceCallbacks, int i, int j, Deque<ServerFunctionManager.QueuedCommand> deque, CommandSourceStack commandSourceStack, CommandFunction commandFunction, CallbackInfo ci) {
-        FunctionWatcher watcher = FunctionWatcher.getInstance();
-        if (!watcher.isEnabled())
+        FunctionProfiler profiler = FunctionProfiler.getInstance();
+        if (!profiler.isEnabled())
             return;
 
-        deque.addFirst(new ServerFunctionManager.QueuedCommand(commandSourceStack, j, new PopFunctionWatchEntry(watcher)));
-        watcher.pushWatch(commandFunction);
+        deque.addFirst(new ServerFunctionManager.QueuedCommand(commandSourceStack, j, new PopFunctionWatchEntry(profiler)));
+        profiler.pushWatch(commandFunction);
     }
 }

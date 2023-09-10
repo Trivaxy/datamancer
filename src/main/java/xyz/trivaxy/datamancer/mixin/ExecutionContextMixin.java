@@ -11,7 +11,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import xyz.trivaxy.datamancer.command.entry.PopFunctionWatchEntry;
-import xyz.trivaxy.datamancer.profile.FunctionWatcher;
+import xyz.trivaxy.datamancer.profile.FunctionProfiler;
 
 import java.util.Deque;
 
@@ -23,11 +23,11 @@ public class ExecutionContextMixin {
 
     @Inject(method = "runTopCommand", at = @At(value = "INVOKE", target = "Lnet/minecraft/commands/CommandFunction;getEntries()[Lnet/minecraft/commands/CommandFunction$Entry;", shift = At.Shift.AFTER))
     private void beforeRootFunctionExecute(CommandFunction function, CommandSourceStack source, CallbackInfoReturnable<Integer> cir) {
-        FunctionWatcher watcher = FunctionWatcher.getInstance();
-        if (!watcher.isEnabled())
+        FunctionProfiler profiler = FunctionProfiler.getInstance();
+        if (!profiler.isEnabled())
             return;
 
-        watcher.pushWatch(function);
-        commandQueue.push(new ServerFunctionManager.QueuedCommand(source, -1, new PopFunctionWatchEntry(watcher)));
+        profiler.pushWatch(function);
+        commandQueue.push(new ServerFunctionManager.QueuedCommand(source, -1, new PopFunctionWatchEntry(profiler)));
     }
 }

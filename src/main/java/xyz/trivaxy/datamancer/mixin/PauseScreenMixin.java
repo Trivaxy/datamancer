@@ -6,13 +6,13 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-import xyz.trivaxy.datamancer.profile.FunctionWatcher;
+import xyz.trivaxy.datamancer.profile.FunctionProfiler;
 
 @Mixin(PauseScreen.class)
 public class PauseScreenMixin {
 
     @Inject(method = "method_19845", at = @At("TAIL"))
     private void onUnpause(Button button, CallbackInfo ci) {
-        FunctionWatcher.getInstance().resume();
+        FunctionProfiler.getInstance().resume();
     }
 }

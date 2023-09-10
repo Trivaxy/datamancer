@@ -7,14 +7,14 @@ import net.minecraft.commands.CommandFunction;
 import java.util.ArrayDeque;
 import java.util.Deque;
 
-public class FunctionWatcher {
+public class FunctionProfiler {
 
     private Object2ObjectMap<CommandFunction, PerformanceEntry> performances = new Object2ObjectOpenHashMap<>();
     private Object2ObjectMap<CommandFunction, Stopwatch> stopwatches = new Object2ObjectOpenHashMap<>();
     private Deque<CommandFunction> watchStack = new ArrayDeque<>();
     private Object2IntMap<CommandFunction> callsInChain = new Object2IntOpenHashMap<>();
     private boolean enabled = false;
-    private static final FunctionWatcher INSTANCE = new FunctionWatcher();
+    private static final FunctionProfiler INSTANCE = new FunctionProfiler();
 
     public void restart() {
         performances.clear();
@@ -83,7 +83,7 @@ public class FunctionWatcher {
         return new FunctionReport(performances.values());
     }
 
-    public static FunctionWatcher getInstance() {
+    public static FunctionProfiler getInstance() {
         return INSTANCE;
     }
 }
