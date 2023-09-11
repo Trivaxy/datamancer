@@ -17,12 +17,20 @@
     ],
     "main": [
       "xyz.trivaxy.datamancer.Datamancer"
+    ],
+    "cardinal-components": [
+      "xyz.trivaxy.datamancer.Datamancer"
     ]
   },
   "mixins": [
     "datamancer.mixins.json"
   ],
   "accessWidener": "datamancer.accesswidener",
+  "custom": {
+    "cardinal-components": [
+      "datamancer:watcher"
+    ]
+  },
   "depends": {
     "fabricloader": ">=0.14.22",
     "fabric": ">=0.88.1+1.20.2",

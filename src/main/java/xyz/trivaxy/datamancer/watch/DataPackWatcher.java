@@ -1,8 +1,13 @@
 package xyz.trivaxy.datamancer.watch;
 
 import com.sun.nio.file.ExtendedWatchEventModifier;
+import dev.onyxstudios.cca.api.v3.component.ComponentKey;
+import dev.onyxstudios.cca.api.v3.component.ComponentRegistry;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
+import net.minecraft.nbt.StringTag;
+import net.minecraft.nbt.Tag;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.packs.repository.Pack;
 import net.minecraft.server.packs.repository.PackRepository;
 import net.minecraft.world.level.storage.LevelResource;
 import xyz.trivaxy.datamancer.Datamancer;
@@ -15,34 +20,37 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.stream.Collectors;
 
-public class DataPackWatcher {
+public class DataPackWatcher implements WatcherStateComponent {
 
     private ExecutorService EXECUTOR_SERVICE = Executors.newSingleThreadExecutor();
-    private final Set<String> watchedPackIds = new HashSet<>();
-    private boolean started = false;
-    private static final DataPackWatcher INSTANCE = new DataPackWatcher();
+    public Set<String> watchedPackIds = new HashSet<>();
+    public boolean active = false;
 
+    public static final ComponentKey<WatcherStateComponent> KEY = ComponentRegistry.getOrCreate(Datamancer.in("watcher"), WatcherStateComponent.class);
+
+    @Override
     public void watchPack(String id) {
         watchedPackIds.add(id);
     }
 
+    @Override
     public void unwatchPack(String id) {
         watchedPackIds.remove(id);
     }
 
-    public boolean isStarted() {
-        return started;
+    @Override
+    public boolean isActive() {
+        return active;
     }
 
-    // will take in the datapacks folder
-    public void start(MinecraftServer server) {
-        if (started) {
-            Datamancer.logWarn("Attempted to start DataPackWatcher twice. This should not happen");
-            return;
-        }
+    @Override
+    public boolean isWatching(String id) {
+        return watchedPackIds.contains(id);
+    }
 
+    @Override
+    public void start(MinecraftServer server) {
         PackRepository repo = server.getPackRepository();
         Path datapacksFolder = server.getWorldPath(LevelResource.DATAPACK_DIR);
 
@@ -86,12 +94,12 @@ public class DataPackWatcher {
 
                         // if a pack is on the watchlist but not enabled, remove it
                         if (repo.isAvailable(packId) && !repo.getSelectedIds().contains(packId)) {
-                            watchedPackIds.remove(packId);
+                            unwatchPack(packId);
                             key.reset();
                             continue;
                         }
 
-                        if (!watchedPackIds.contains(packId)) {
+                        if (!isWatching(packId)) {
                             key.reset();
                             continue;
                         }
@@ -117,16 +125,41 @@ public class DataPackWatcher {
             Datamancer.logError("Failed to start DataPackWatcher", e);
         }
 
-        started = true;
+        active = true;
     }
 
+    @Override
     public void stop() {
         EXECUTOR_SERVICE.shutdownNow();
         EXECUTOR_SERVICE = Executors.newSingleThreadExecutor();
-        started = false;
     }
 
-    public static DataPackWatcher getInstance() {
-        return INSTANCE;
+    @Override
+    public void shutdown() {
+        stop();
+        active = false;
+    }
+
+    @Override
+    public void readFromNbt(CompoundTag tag) {
+        ListTag watched = tag.getList("watched_packs", Tag.TAG_STRING);
+
+        for (Tag t : watched) {
+            watchedPackIds.add(t.getAsString());
+        }
+
+        active = tag.getBoolean("watcher_started");
+    }
+
+    @Override
+    public void writeToNbt(CompoundTag tag) {
+        ListTag watched = new ListTag();
+
+        for (String id : watchedPackIds) {
+            watched.add(StringTag.valueOf(id));
+        }
+
+        tag.put("watched_packs", watched);
+        tag.putBoolean("watcher_started", active);
     }
 }

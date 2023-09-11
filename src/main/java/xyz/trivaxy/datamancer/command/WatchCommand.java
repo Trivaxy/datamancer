@@ -8,6 +8,7 @@ import net.minecraft.commands.Commands;
 import net.minecraft.commands.SharedSuggestionProvider;
 import net.minecraft.network.chat.Component;
 import xyz.trivaxy.datamancer.watch.DataPackWatcher;
+import xyz.trivaxy.datamancer.watch.WatcherStateComponent;
 
 public class WatchCommand extends DatamancerCommand {
 
@@ -22,7 +23,7 @@ public class WatchCommand extends DatamancerCommand {
                                 .suggests(SELECTED_PACKS)
                                 .executes(context -> {
                                     String packName = StringArgumentType.getString(context, "pack");
-                                    DataPackWatcher.getInstance().watchPack(packName);
+                                    getWatcher(context.getSource()).watchPack(packName);
                                     return 1;
                                 })
                         )
@@ -32,19 +33,21 @@ public class WatchCommand extends DatamancerCommand {
                                 .suggests(SELECTED_PACKS)
                                 .executes(context -> {
                                     String packName = StringArgumentType.getString(context, "pack");
-                                    DataPackWatcher.getInstance().unwatchPack(packName);
+                                    getWatcher(context.getSource()).unwatchPack(packName);
                                     return 1;
                                 })
                         )
                 )
                 .then(Commands.literal("start")
                         .executes(context -> {
-                            if (DataPackWatcher.getInstance().isStarted()) {
+                            WatcherStateComponent watcher = getWatcher(context.getSource());
+
+                            if (watcher.isActive()) {
                                 replyFailure(context.getSource(), Component.literal("Watcher already active"));
                                 return 0;
                             }
 
-                            DataPackWatcher.getInstance().start(context.getSource().getServer());
+                            watcher.start(context.getSource().getServer());
                             replySuccess(context.getSource(), Component.literal("Started watcher"));
 
                             return 1;
@@ -52,16 +55,22 @@ public class WatchCommand extends DatamancerCommand {
                 )
                 .then(Commands.literal("stop")
                         .executes(context -> {
-                            if (!DataPackWatcher.getInstance().isStarted()) {
+                            WatcherStateComponent watcher = getWatcher(context.getSource());
+
+                            if (!watcher.isActive()) {
                                 replyFailure(context.getSource(), Component.literal("Watcher not active"));
                                 return 0;
                             }
 
-                            DataPackWatcher.getInstance().stop();
+                            watcher.shutdown();
                             replySuccess(context.getSource(), Component.literal("Stopped watcher"));
                             return 1;
                         })
                 )
         );
+    }
+
+    private static WatcherStateComponent getWatcher(CommandSourceStack source) {
+        return DataPackWatcher.KEY.get(source.getLevel().getLevelData());
     }
 }
