@@ -26,6 +26,10 @@ public class Datamancer implements ModInitializer {
         return new ResourceLocation(MOD_ID, path);
     }
 
+    public static void log(String message) {
+        LOGGER.info(message);
+    }
+
     public static void logWarn(String message) {
         LOGGER.warn(message);
     }

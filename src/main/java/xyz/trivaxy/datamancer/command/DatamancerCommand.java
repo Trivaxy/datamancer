@@ -26,7 +26,8 @@ public abstract class DatamancerCommand {
     private static final DatamancerCommand[] COMMANDS = new DatamancerCommand[] {
         new FunctionProfileCommand(),
         new RepeatCommand(),
-        new MarkerGogglesCommand()
+        new MarkerGogglesCommand(),
+        new WatchCommand()
     };
 
     public static void registerCommands(CommandDispatcher<CommandSourceStack> dispatcher, CommandSelection environment) {
