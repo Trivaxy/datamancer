@@ -14,10 +14,7 @@ import xyz.trivaxy.datamancer.Datamancer;
 
 import java.io.IOException;
 import java.nio.file.*;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -47,6 +44,11 @@ public class DataPackWatcher implements WatcherStateComponent {
     @Override
     public boolean isWatching(String id) {
         return watchedPackIds.contains(id);
+    }
+
+    @Override
+    public Collection<String> getWatchList() {
+        return Collections.unmodifiableSet(watchedPackIds);
     }
 
     @Override
