@@ -10,6 +10,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.ComponentUtils;
 import net.minecraft.server.packs.repository.Pack;
 import net.minecraft.server.packs.repository.PackRepository;
+import net.minecraft.server.packs.repository.PackSource;
 import xyz.trivaxy.datamancer.watch.DataPackWatcher;
 import xyz.trivaxy.datamancer.watch.WatcherStateComponent;
 
@@ -18,7 +19,12 @@ import java.util.Collection;
 public class WatchCommand extends DatamancerCommand {
 
     private static final SuggestionProvider<CommandSourceStack> SELECTED_PACKS = (commandContext, suggestionsBuilder) ->
-            SharedSuggestionProvider.suggest(commandContext.getSource().getServer().getPackRepository().getAvailableIds().stream().filter(s -> !s.equals("vanilla") && !s.equals("fabric")).map(StringArgumentType::escapeIfRequired), suggestionsBuilder);
+            SharedSuggestionProvider.suggest(
+                    commandContext.getSource().getServer().getPackRepository().getAvailablePacks()
+                                  .stream()
+                                  .filter(pack -> pack.getPackSource() == PackSource.WORLD)
+                                  .map(Pack::getId)
+                                  .map(StringArgumentType::escapeIfRequired), suggestionsBuilder);
 
     @Override
     public void register(CommandDispatcher<CommandSourceStack> dispatcher, Commands.CommandSelection environment) {
