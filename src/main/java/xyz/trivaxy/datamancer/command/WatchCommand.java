@@ -18,6 +18,7 @@ public class WatchCommand extends DatamancerCommand {
     @Override
     public void register(CommandDispatcher<CommandSourceStack> dispatcher, Commands.CommandSelection environment) {
         dispatcher.register(Commands.literal("watch")
+                .requires(source -> source.hasPermission(2))
                 .then(Commands.literal("add")
                         .then(Commands.argument("pack", StringArgumentType.string())
                                 .suggests(SELECTED_PACKS)
