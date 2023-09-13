@@ -7,7 +7,11 @@
   "authors": [
     "Trivaxy"
   ],
-  "contact": {},
+  "contact": {
+    "homepage": "https://discord.com/invite/Hnd8afe6J7",
+    "sources": "https://github.com/Trivaxy/datamancer/tree/main",
+    "issues": "https://github.com/Trivaxy/datamancer/issues"
+  },
   "license": "MIT",
   "icon": "assets/datamancer/icon.png",
   "environment": "*",
