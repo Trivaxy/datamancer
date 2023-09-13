@@ -1,5 +1,5 @@
 # Datamancer
-<img align="right" width="325" height="325" src="https://github.com/Trivaxy/datamancer/assets/13611030/f815f1f3-2ca7-4ffb-8881-ccc1a35d989d">
+<img align="right" width="325" height="325" src="https://github.com/Trivaxy/datamancer/assets/13611030/1e0ca0df-db4e-4892-82cf-573236448036">
 
 <*The must have tool for datapack developers and command enthusiasts*>
 
