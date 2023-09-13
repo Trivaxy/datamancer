@@ -1,4 +1,5 @@
 # Datamancer
+<img align="right" width="325" height="325" src="https://github.com/Trivaxy/datamancer/assets/13611030/f815f1f3-2ca7-4ffb-8881-ccc1a35d989d">
 
 <*The must have tool for datapack developers and command enthusiasts*>
 
@@ -9,6 +10,7 @@ Getting started is simple! Just install the mod from either CurseForge or Modrin
 If you need help using the mod, want to submit a report, or got suggestions to share, then check out [Datamancer's discord server](https://discord.gg/Hnd8afe6J7).
 
 # Contributions
+
 
 If you find a bug or want to provide feedback, please open an issue.
 
