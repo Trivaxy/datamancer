@@ -80,6 +80,8 @@ public class DataPackWatcher implements WatcherStateComponent {
                             break;
                         }
 
+                        Thread.sleep(50);
+
                         List<WatchEvent<?>> events = key.pollEvents();
 
                         if (events.isEmpty() || watchedPackIds.isEmpty()) {
@@ -120,7 +122,9 @@ public class DataPackWatcher implements WatcherStateComponent {
 
                     watchService.close();
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    Datamancer.logError("Error while watching datapacks folder", e);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
                 }
             });
         } catch (Exception e) {
