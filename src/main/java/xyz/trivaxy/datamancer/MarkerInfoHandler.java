@@ -32,7 +32,9 @@ public class MarkerInfoHandler {
 
         for (Marker marker : markers) {
             buf.writeUUID(marker.getUUID());
-            buf.writeVec3(marker.position());
+            buf.writeDouble(marker.getX());
+            buf.writeDouble(marker.getY());
+            buf.writeDouble(marker.getZ());
         }
 
         return buf;

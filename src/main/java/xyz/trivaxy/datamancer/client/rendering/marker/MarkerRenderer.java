@@ -70,7 +70,7 @@ public class MarkerRenderer {
 
         for (int i = 0; i < markerCount; i++) {
             UUID markerUUID = buf.readUUID();
-            Vec3 markerPos = buf.readVec3();
+            Vec3 markerPos = new Vec3(buf.readDouble(), buf.readDouble(), buf.readDouble());
             incomingMarkers.put(markerUUID, markerPos);
         }
 
