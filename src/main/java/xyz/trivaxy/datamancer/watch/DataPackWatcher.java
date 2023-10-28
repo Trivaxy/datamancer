@@ -1,5 +1,6 @@
 package xyz.trivaxy.datamancer.watch;
 
+import com.google.common.collect.ImmutableSet;
 import com.sun.nio.file.ExtendedWatchEventModifier;
 import dev.onyxstudios.cca.api.v3.component.ComponentKey;
 import dev.onyxstudios.cca.api.v3.component.ComponentRegistry;
@@ -10,8 +11,10 @@ import net.minecraft.nbt.Tag;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.packs.repository.PackRepository;
 import net.minecraft.world.level.storage.LevelResource;
+import org.apache.commons.io.FilenameUtils;
 import xyz.trivaxy.datamancer.Datamancer;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.*;
 import java.util.*;
@@ -23,6 +26,13 @@ public class DataPackWatcher implements WatcherStateComponent {
     private ExecutorService EXECUTOR_SERVICE = Executors.newSingleThreadExecutor();
     public Set<String> watchedPackIds = new HashSet<>();
     public boolean active = false;
+
+    private static Set<String> watchedFileExtensions = ImmutableSet.of(
+            "mcfunction",
+            "json",
+            "nbt",
+            "mcmeta"
+    );
 
     public static final ComponentKey<WatcherStateComponent> KEY = ComponentRegistry.getOrCreate(Datamancer.in("watcher"), WatcherStateComponent.class);
 
@@ -89,8 +99,13 @@ public class DataPackWatcher implements WatcherStateComponent {
                             continue;
                         }
 
-                        // doesn't matter what the event is, we just need to reload the needed packs
                         WatchEvent<?> event = events.get(0);
+
+                        if (!shouldAcceptWatchEvent(event)) {
+                            key.reset();
+                            continue;
+                        }
+
                         Path path = (Path) event.context();
                         String packId = "file/" + path.getName(0);
 
@@ -167,5 +182,17 @@ public class DataPackWatcher implements WatcherStateComponent {
 
         tag.put("watched_packs", watched);
         tag.putBoolean("watcher_started", active);
+    }
+
+    private boolean shouldAcceptWatchEvent(WatchEvent<?> event) {
+        Path path = (Path) event.context();
+        File file = new File(String.valueOf(path));
+
+        // a directory getting deleted or changed should trigger a reload
+        if (file.isDirectory()) {
+            return event.kind() == StandardWatchEventKinds.ENTRY_DELETE || event.kind() == StandardWatchEventKinds.ENTRY_MODIFY;
+        }
+
+        return watchedFileExtensions.contains(FilenameUtils.getExtension(file.getName()));
     }
 }
