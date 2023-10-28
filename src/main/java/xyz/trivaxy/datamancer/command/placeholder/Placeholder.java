@@ -137,6 +137,14 @@ public class Placeholder {
                             return Component.literal("None");
 
                         return prettyPrintPositions(entities.stream().map(Entity::position).collect(Collectors.toList()));
+                    }),
+            "count", new PlaceholderBuilder()
+                    .argument(EntityArgument.entities())
+                    .process((context, argument) -> {
+                        EntitySelector entitySelector = argument.get(0);
+                        List<? extends Entity> entities = entitySelector.findEntities(context);
+
+                        return Component.literal(String.valueOf(entities.size()));
                     })
     );
 
