@@ -1,6 +1,7 @@
 package xyz.trivaxy.datamancer.command;
 
 import com.mojang.brigadier.CommandDispatcher;
+import com.mojang.brigadier.context.CommandContext;
 import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.commands.CommandSourceStack;
@@ -16,30 +17,36 @@ public class MarkerGogglesCommand extends DatamancerCommand {
 
     @Override
     public void register(CommandDispatcher<CommandSourceStack> dispatcher, Commands.CommandSelection environment) {
-        var node = dispatcher.register(literal("markergoggles")
+       dispatcher.register(literal("markergoggles")
                 .requires(source -> source.hasPermission(2))
-                .executes(context -> {
-                    if (!context.getSource().isPlayer()) {
-                        replyFailure(context.getSource(), Component.literal("This command can only be executed by a player"));
-                        return 0;
-                    }
+                .executes(this::execute)
+       );
 
-                    ServerPlayer player = context.getSource().getPlayer();
-                    MarkerListenerAccess listener = (MarkerListenerAccess) player;
+       // we love brigadier bugs... can't use redirect here
+       dispatcher.register(literal("mg")
+                .requires(source -> source.hasPermission(2))
+                .executes(this::execute)
+       );
+    }
 
-                    if (listener.isListeningForMarkers()) {
-                        listener.setListeningForMarkers(false);
-                        ServerPlayNetworking.send(player, MarkerInfoHandler.MARKER_GOGGLES_OFF, PacketByteBufs.empty());
-                        replySuccess(context.getSource(), Component.literal("Disabled marker goggles"));
-                    } else {
-                        listener.setListeningForMarkers(true);
-                        replySuccess(context.getSource(), Component.literal("Enabled marker goggles"));
-                    }
+    private int execute(CommandContext<CommandSourceStack> context) {
+        if (!context.getSource().isPlayer()) {
+            replyFailure(context.getSource(), Component.literal("This command can only be executed by a player"));
+            return 0;
+        }
 
-                    return 0;
-                })
-        );
+        ServerPlayer player = context.getSource().getPlayer();
+        MarkerListenerAccess listener = (MarkerListenerAccess) player;
 
-        dispatcher.register(literal("mg").redirect(node));
+        if (listener.isListeningForMarkers()) {
+            listener.setListeningForMarkers(false);
+            ServerPlayNetworking.send(player, MarkerInfoHandler.MARKER_GOGGLES_OFF, PacketByteBufs.empty());
+            replySuccess(context.getSource(), Component.literal("Disabled marker goggles"));
+        } else {
+            listener.setListeningForMarkers(true);
+            replySuccess(context.getSource(), Component.literal("Enabled marker goggles"));
+        }
+
+        return 0;
     }
 }
