@@ -27,7 +27,7 @@ public class DataPackWatcher implements WatcherStateComponent {
     public Set<String> watchedPackIds = new HashSet<>();
     public boolean active = false;
 
-    private static Set<String> watchedFileExtensions = ImmutableSet.of(
+    private static final Set<String> watchedFileExtensions = ImmutableSet.of(
             "mcfunction",
             "json",
             "nbt",

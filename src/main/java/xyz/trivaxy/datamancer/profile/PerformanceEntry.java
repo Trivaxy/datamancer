@@ -1,50 +1,73 @@
 package xyz.trivaxy.datamancer.profile;
 
-import net.minecraft.commands.CommandFunction;
+import net.minecraft.resources.ResourceLocation;
+import xyz.trivaxy.datamancer.util.LongRingBuffer;
 
 public final class PerformanceEntry {
 
-    private long totalExecutionTime;
-    private long totalExecutionCount;
-    private final CommandFunction function;
+    private final ResourceLocation functionId;
+    private final LongRingBuffer data = new LongRingBuffer(50);
+    private long totalExecutionCount = 0;
 
-    private PerformanceEntry(long executionTime, long executionCount, CommandFunction function) {
-        totalExecutionTime = executionTime;
-        totalExecutionCount = executionCount;
-        this.function = function;
+    public PerformanceEntry(ResourceLocation functionId) {
+        this.functionId = functionId;
     }
 
-    public long getTotalExecutionTime() {
-        return totalExecutionTime;
+    public ResourceLocation getFunctionId() {
+        return functionId;
+    }
+
+    public void record(long executionTime) {
+        data.add(executionTime);
+        totalExecutionCount++;
+    }
+
+    public void reset() {
+        data.clear();
     }
 
     public long getTotalExecutionCount() {
         return totalExecutionCount;
     }
 
-    public CommandFunction getFunction() {
-        return function;
+    public double calculateMean() {
+        double sum = 0;
+
+        for (long value : data) {
+            sum += value;
+        }
+
+        return sum / data.size();
     }
 
-    public void accountFor(long executionTime) {
-        totalExecutionTime += executionTime;
-        totalExecutionCount++;
+    public double calculateStandardDeviation() {
+        double mean = calculateMean();
+        double sum = 0;
+
+        for (long value : data) {
+            sum += Math.pow(value - mean, 2);
+        }
+
+        return Math.sqrt(sum / data.size());
     }
 
-    public void accountForRecursive(long executionTime) {
-        totalExecutionTime += executionTime;
+    public double findMin() {
+        double min = Double.MAX_VALUE;
+
+        for (long value : data) {
+            min = Math.min(min, value);
+        }
+
+        return min;
     }
 
-    public double getAverageExecutionTime() {
-        return totalExecutionTime / (double) totalExecutionCount;
-    }
+    public double findMax() {
+        double max = Double.MIN_VALUE;
 
-    public void reset() {
-        totalExecutionTime = 0;
-        totalExecutionCount = 0;
-    }
+        for (long value : data) {
+            max = Math.max(max, value);
+        }
 
-    public static PerformanceEntry empty(CommandFunction function) {
-        return new PerformanceEntry(0, 0, function);
+        return max;
     }
 }

@@ -1,10 +1,10 @@
 package xyz.trivaxy.datamancer.command;
 
 import com.mojang.brigadier.CommandDispatcher;
-import net.minecraft.commands.CommandFunction;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.commands.arguments.item.FunctionArgument;
+import net.minecraft.commands.functions.CommandFunction;
 import net.minecraft.server.commands.FunctionCommand;
 
 import java.util.Collection;
@@ -24,22 +24,19 @@ public class RepeatCommand extends DatamancerCommand {
                     .then(argument("function", FunctionArgument.functions()).suggests(FunctionCommand.SUGGEST_FUNCTION)
                         .executes(context -> {
                             int count = getInteger(context, "count");
-                            Collection<CommandFunction> functions = FunctionArgument.getFunctions(context, "function");
+                            Collection<CommandFunction<CommandSourceStack>> functions = FunctionArgument.getFunctions(context, "function");
 
-                            return repeatFunctions(context.getSource(), count, functions);
+                            repeatFunctions(context.getSource(), count, functions);
+                            return 0;
                             })
                     )
                 )
         );
     }
 
-    private static int repeatFunctions(CommandSourceStack source, int count, Collection<CommandFunction> functions) {
-        int sum = 0;
-
+    private static void repeatFunctions(CommandSourceStack source, int count, Collection<CommandFunction<CommandSourceStack>> functions) {
         for (int i = 0; i < count; i++)
-            for (CommandFunction function : functions)
-                sum += source.getServer().getFunctions().execute(function, source.withSuppressedOutput().withMaximumPermission(2));
-
-        return sum;
+            for (CommandFunction<CommandSourceStack> function : functions)
+                source.getServer().getFunctions().execute(function, source.withSuppressedOutput().withMaximumPermission(2));
     }
 }

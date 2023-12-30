@@ -1,51 +1,39 @@
 package xyz.trivaxy.datamancer.profile;
 
 import com.google.common.base.Stopwatch;
-import it.unimi.dsi.fastutil.objects.*;
-import net.minecraft.commands.CommandFunction;
+import it.unimi.dsi.fastutil.longs.LongArrayFIFOQueue;
+import net.minecraft.resources.ResourceLocation;
 
 import java.util.ArrayDeque;
 import java.util.Deque;
+import java.util.HashMap;
+import java.util.concurrent.TimeUnit;
 
 public class FunctionProfiler {
 
-    private Object2ObjectMap<CommandFunction, PerformanceEntry> performances = new Object2ObjectOpenHashMap<>();
-    private Object2ObjectMap<CommandFunction, Stopwatch> stopwatches = new Object2ObjectOpenHashMap<>();
-    private Deque<CommandFunction> watchStack = new ArrayDeque<>();
-    private Object2IntMap<CommandFunction> callsInChain = new Object2IntOpenHashMap<>();
+    private final HashMap<ResourceLocation, PerformanceEntry> performances = new HashMap<>();
+    private final Stopwatch stopwatch = Stopwatch.createStarted(); // it's fine for this to run forever (unless you live 584 years)
+    private final Deque<ResourceLocation> functionStack = new ArrayDeque<>();
+    private final LongArrayFIFOQueue timestampStack = new LongArrayFIFOQueue();
     private boolean enabled = false;
     private static final FunctionProfiler INSTANCE = new FunctionProfiler();
 
     public void restart() {
         performances.clear();
-        stopwatches.clear();
-        watchStack.clear();
-        callsInChain.clear();
+        functionStack.clear();
+        timestampStack.clear();
     }
 
-    public void pushWatch(CommandFunction function) {
-        performances.putIfAbsent(function, PerformanceEntry.empty(function));
-        watchStack.push(function);
-        callsInChain.put(function, callsInChain.getOrDefault(function, 0) + 1);
-        stopwatches.putIfAbsent(function, Stopwatch.createStarted());
+    public void pushWatch(ResourceLocation functionId) {
+        performances.computeIfAbsent(functionId, PerformanceEntry::new);
+        functionStack.push(functionId);
+        timestampStack.enqueue(stopwatch.elapsed(TimeUnit.MICROSECONDS));
     }
 
     public void popWatch() {
-        CommandFunction function = watchStack.pop();
-        Stopwatch stopwatch = stopwatches.get(function);
-
-        long time = stopwatch.elapsed().toMillis();
-        PerformanceEntry entry = performances.get(function);
-        int callCount = callsInChain.getInt(function);
-
-        if (callCount > 1)
-            entry.accountForRecursive(time);
-        else {
-            entry.accountFor(time);
-            stopwatches.remove(function);
-        }
-
-        callsInChain.put(function, callCount - 1);
+        ResourceLocation functionId = functionStack.pop();
+        long profiledTime = stopwatch.elapsed(TimeUnit.MICROSECONDS) - timestampStack.dequeueLastLong();
+        performances.get(functionId).record(profiledTime);
     }
 
     public int watchCount() {
@@ -63,11 +51,14 @@ public class FunctionProfiler {
 
     public void disable() {
         enabled = false;
-        pause();
+        stopwatch.reset();
     }
 
     public void pause() {
-        for (Stopwatch stopwatch : stopwatches.values())
+        if (!enabled)
+            return;
+
+        if (stopwatch.isRunning())
             stopwatch.stop();
     }
 
@@ -75,7 +66,7 @@ public class FunctionProfiler {
         if (!enabled)
             return;
 
-        for (Stopwatch stopwatch : stopwatches.values())
+        if (!stopwatch.isRunning())
             stopwatch.start();
     }
 

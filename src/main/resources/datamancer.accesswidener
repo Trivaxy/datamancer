@@ -1,6 +1,7 @@
 accessWidener v1 named
 
-accessible class net/minecraft/server/ServerFunctionManager$ExecutionContext
-accessible field net/minecraft/server/ServerFunctionManager$ExecutionContext commandQueue Ljava/util/Deque;
-accessible method net/minecraft/commands/CommandSourceStack broadcastToAdmins (Lnet/minecraft/network/chat/Component;)V
-accessible method net/minecraft/server/commands/data/DataCommands getData (Lnet/minecraft/commands/CommandSourceStack;Lnet/minecraft/server/commands/data/DataAccessor;)I
+accessible class net/minecraft/commands/functions/FunctionBuilder
+accessible field net/minecraft/commands/functions/FunctionBuilder plainEntries Ljava/util/List;
+accessible field net/minecraft/commands/execution/tasks/CallFunction function Lnet/minecraft/commands/functions/InstantiatedFunction;
+#accessible method net/minecraft/commands/CommandSourceStack broadcastToAdmins (Lnet/minecraft/network/chat/Component;)V
+#accessible method net/minecraft/server/commands/data/DataCommands getData (Lnet/minecraft/commands/CommandSourceStack;Lnet/minecraft/server/commands/data/DataAccessor;)I

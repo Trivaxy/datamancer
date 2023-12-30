@@ -25,6 +25,7 @@ import net.minecraft.world.level.block.state.properties.Property;
 import net.minecraft.world.level.storage.CommandStorage;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.scores.Objective;
+import net.minecraft.world.scores.ScoreHolder;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -41,7 +42,7 @@ public class Placeholder {
                     .argument(ObjectiveArgument.objective())
                     .process((context, arguments) -> {
                         ServerScoreboard scoreboard = context.getServer().getScoreboard();
-                        Collection<String> scoreHolders = arguments.<ScoreHolderArgument.Result>get(0).getNames(context, Collections::emptyList);
+                        Collection<ScoreHolder> scoreHolders = arguments.<ScoreHolderArgument.Result>get(0).getNames(context, Collections::emptyList);
                         Objective objective = scoreboard.getObjective(arguments.get(1));
 
                         if (objective == null)
@@ -49,8 +50,8 @@ public class Placeholder {
 
                         String result = scoreHolders
                                 .stream()
-                                .filter(s -> scoreboard.hasPlayerScore(s, objective))
-                                .map(s -> String.valueOf(scoreboard.getOrCreatePlayerScore(s, objective).getScore()))
+                                .filter(s -> scoreboard.getPlayerScoreInfo(s, objective) != null)
+                                .map(s -> String.valueOf(scoreboard.getOrCreatePlayerScore(s, objective)))
                                 .collect(Collectors.joining(", "));
 
                         if (result.isBlank())
