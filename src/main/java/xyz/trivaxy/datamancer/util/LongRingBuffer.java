@@ -12,7 +12,6 @@ public class LongRingBuffer implements Iterable<Long> {
 
     public LongRingBuffer(int size) {
         buffer = new long[size];
-        this.size = size;
     }
 
     public void add(long value) {
@@ -43,7 +42,7 @@ public class LongRingBuffer implements Iterable<Long> {
 
             @Override
             public Long next() {
-                return buffer[(index + i++) % buffer.length];
+                return buffer[i++];
             }
         };
     }
