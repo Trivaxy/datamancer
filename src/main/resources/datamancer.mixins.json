@@ -6,6 +6,7 @@
   "mixins": [
     "CallFunctionMixin",
     "CommandFunctionMixin",
+    "ExecutionContextMixin",
     "PlayerMixin"
   ],
   "client": [

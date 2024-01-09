@@ -16,12 +16,14 @@ public class FunctionProfiler {
     private final Deque<ResourceLocation> functionStack = new ArrayDeque<>();
     private final LongArrayFIFOQueue timestampStack = new LongArrayFIFOQueue();
     private boolean enabled = false;
+    private int overflowCount = 0;
     private static final FunctionProfiler INSTANCE = new FunctionProfiler();
 
     public void restart() {
         performances.clear();
         functionStack.clear();
         timestampStack.clear();
+        overflowCount = 0;
     }
 
     public void pushWatch(ResourceLocation functionId) {
@@ -70,8 +72,12 @@ public class FunctionProfiler {
             stopwatch.start();
     }
 
+    public void signalOverflow() {
+        overflowCount++;
+    }
+
     public FunctionReport getReport() {
-        return new FunctionReport(performances.values());
+        return new FunctionReport(performances.values(), overflowCount);
     }
 
     public static FunctionProfiler getInstance() {
