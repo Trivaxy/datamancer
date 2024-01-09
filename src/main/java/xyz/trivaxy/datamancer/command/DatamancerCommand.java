@@ -7,6 +7,7 @@ import net.minecraft.network.chat.TextColor;
 
 import static net.minecraft.commands.Commands.*;
 
+@SuppressWarnings("StaticInitializerReferencesSubClass")
 public abstract class DatamancerCommand {
 
     public static final Component PREFIX = Component
