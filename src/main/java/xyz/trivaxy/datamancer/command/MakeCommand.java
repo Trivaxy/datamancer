@@ -14,6 +14,7 @@ import net.minecraft.network.chat.ClickEvent;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.packs.PackType;
 import net.minecraft.world.level.storage.LevelResource;
+import xyz.trivaxy.datamancer.Datamancer;
 
 import java.io.FileWriter;
 import java.io.IOException;
@@ -62,7 +63,7 @@ public class MakeCommand extends DatamancerCommand {
         }
 
         if (!packFolder.toFile().mkdirs()) {
-            replyFailure(context.getSource(), Component.literal("Failed to create pack"));
+            errorAndCleanup(context.getSource(), name, "unable to create pack folder");
             return 0;
         }
 
@@ -71,12 +72,12 @@ public class MakeCommand extends DatamancerCommand {
         try (FileWriter writer = new FileWriter(packFolder.resolve("pack.mcmeta").toFile())) {
             writer.write(gson.toJson(root));
         } catch (IOException e) {
-            replyFailure(context.getSource(), Component.literal("Failed to create pack"));
+            errorAndCleanup(context.getSource(), name, "unable to write pack.mcmeta");
             return 0;
         }
 
         if (!packFolder.resolve("data").resolve(name).toFile().mkdirs()) {
-            replyFailure(context.getSource(), Component.literal("Failed to create pack"));
+            errorAndCleanup(context.getSource(), name, "unable to create data folder");
             return 0;
         }
 
@@ -93,5 +94,18 @@ public class MakeCommand extends DatamancerCommand {
         replySuccess(context.getSource(), fileLink);
         
         return 1;
+    }
+
+    private void errorAndCleanup(CommandSourceStack source, String packName, String reason) {
+        Datamancer.logError("Failed to create datapack \"" + packName + "\": " + reason);
+        replyFailure(source, Component.literal("Failed to create datapack"));
+
+        Path packFolder = source.getServer().getWorldPath(LevelResource.DATAPACK_DIR).resolve(packName);
+
+        if (packFolder.toFile().exists()) {
+            if (!packFolder.toFile().delete()) {
+                Datamancer.logError("Failed to delete pack folder during cleanup: " + packFolder.toAbsolutePath().toString());
+            }
+        }
     }
 }
