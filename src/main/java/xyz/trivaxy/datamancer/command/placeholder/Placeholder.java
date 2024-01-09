@@ -2,6 +2,7 @@ package xyz.trivaxy.datamancer.command.placeholder;
 
 import com.mojang.brigadier.StringReader;
 import com.mojang.brigadier.arguments.ArgumentType;
+import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import net.minecraft.ChatFormatting;
 import net.minecraft.advancements.critereon.NbtPredicate;
@@ -27,6 +28,9 @@ import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.scores.Objective;
 import net.minecraft.world.scores.ScoreHolder;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.FormatStyle;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -146,6 +150,15 @@ public class Placeholder {
                         List<? extends Entity> entities = entitySelector.findEntities(context);
 
                         return Component.literal(String.valueOf(entities.size()));
+                    }),
+            "time", new PlaceholderBuilder()
+                    .argument(StringArgumentType.word())
+                    .process((context, argument) -> switch ((String) argument.get(0)) {
+                        case "daytime" -> Component.literal(String.valueOf(context.getLevel().getDayTime() % 24000L));
+                        case "gametime" -> Component.literal(String.valueOf(context.getLevel().getGameTime() % 2147483647L));
+                        case "day" -> Component.literal(String.valueOf(context.getLevel().getDayTime() / 24000L % 2147483647L));
+                        case "realtime" -> Component.literal(DateTimeFormatter.ofLocalizedDateTime(FormatStyle.SHORT).format(LocalDateTime.now()));
+                        default -> Component.literal("None");
                     })
     );
 
