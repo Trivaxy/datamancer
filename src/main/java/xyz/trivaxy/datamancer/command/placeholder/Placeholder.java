@@ -55,7 +55,7 @@ public class Placeholder {
                         String result = scoreHolders
                                 .stream()
                                 .filter(s -> scoreboard.getPlayerScoreInfo(s, objective) != null)
-                                .map(s -> String.valueOf(scoreboard.getOrCreatePlayerScore(s, objective)))
+                                .map(s -> String.valueOf(scoreboard.getOrCreatePlayerScore(s, objective).get()))
                                 .collect(Collectors.joining(", "));
 
                         if (result.isBlank())
