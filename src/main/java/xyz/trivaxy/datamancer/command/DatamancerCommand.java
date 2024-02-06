@@ -29,7 +29,8 @@ public abstract class DatamancerCommand {
         new RepeatCommand(),
         new MarkerGogglesCommand(),
         new WatchCommand(),
-        new MakeCommand()
+        new MakeCommand(),
+        new OpenCommand()
     };
 
     public static void registerCommands(CommandDispatcher<CommandSourceStack> dispatcher, CommandSelection environment) {
