@@ -6,6 +6,7 @@ import net.minecraft.resources.ResourceLocation;
 
 import java.util.*;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 public class FunctionProfiler {
 
@@ -83,7 +84,11 @@ public class FunctionProfiler {
     }
 
     public FunctionReport getReport() {
-        return new FunctionReport(performances.values(), overflowCount, overflowStacktrace);
+        return new FunctionReport(
+            performances.values().stream().filter(entry -> entry.getTotalExecutionCount() != 0).collect(Collectors.toList()),
+            overflowCount,
+            overflowStacktrace
+        );
     }
 
     public static FunctionProfiler getInstance() {
