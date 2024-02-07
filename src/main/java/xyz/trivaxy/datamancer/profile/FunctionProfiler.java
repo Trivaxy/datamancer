@@ -4,9 +4,7 @@ import com.google.common.base.Stopwatch;
 import it.unimi.dsi.fastutil.longs.LongArrayFIFOQueue;
 import net.minecraft.resources.ResourceLocation;
 
-import java.util.ArrayDeque;
-import java.util.Deque;
-import java.util.HashMap;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 public class FunctionProfiler {
@@ -17,6 +15,7 @@ public class FunctionProfiler {
     private final LongArrayFIFOQueue timestampStack = new LongArrayFIFOQueue();
     private boolean enabled = false;
     private int overflowCount = 0;
+    private static List<ResourceLocation> overflowStacktrace = new ArrayList<>();
     private static final FunctionProfiler INSTANCE = new FunctionProfiler();
 
     public void restart() {
@@ -24,6 +23,7 @@ public class FunctionProfiler {
         functionStack.clear();
         timestampStack.clear();
         overflowCount = 0;
+        overflowStacktrace.clear();
     }
 
     public void pushWatch(ResourceLocation functionId) {
@@ -74,10 +74,16 @@ public class FunctionProfiler {
 
     public void signalOverflow() {
         overflowCount++;
+
+        overflowStacktrace = new ArrayList<>(functionStack);
+        Collections.reverse(overflowStacktrace);
+
+        functionStack.clear();
+        timestampStack.clear();
     }
 
     public FunctionReport getReport() {
-        return new FunctionReport(performances.values(), overflowCount);
+        return new FunctionReport(performances.values(), overflowCount, overflowStacktrace);
     }
 
     public static FunctionProfiler getInstance() {
