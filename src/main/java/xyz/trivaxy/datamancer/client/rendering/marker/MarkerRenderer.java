@@ -2,6 +2,7 @@ package xyz.trivaxy.datamancer.client.rendering.marker;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.*;
+import com.mojang.datafixers.util.Pair;
 import com.mojang.math.Axis;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext;
 import net.fabricmc.fabric.api.networking.v1.PacketSender;
@@ -17,15 +18,15 @@ import java.util.*;
 
 public class MarkerRenderer {
 
-    private static Map<UUID, Vec3> markers = new HashMap<>();
+    private static Map<UUID, Pair<Vec3, Long>> markers = new HashMap<>();
 
     public static void renderMarkers(WorldRenderContext context) {
-        for (Map.Entry<UUID, Vec3> markerPos : markers.entrySet()) {
-            renderMarker(context, markerPos.getValue(), markerPos.getKey());
+        for (Pair<Vec3, Long> pair : markers.values()) {
+            renderMarker(context, pair.getFirst(), pair.getSecond());
         }
     }
 
-    private static void renderMarker(WorldRenderContext context, Vec3 position, UUID uuid) {
+    private static void renderMarker(WorldRenderContext context, Vec3 position, long color) {
         PoseStack poseStack = context.matrixStack();
         Vec3 cameraPos = context.camera().getPosition();
 
@@ -40,11 +41,9 @@ public class MarkerRenderer {
         BufferBuilder buffer = tesselator.getBuilder();
         Matrix4f posMatrix = poseStack.last().pose();
 
-        // i use the marker's uuid just because it's the easiest way to randomize its color without inducing seizures
-        long lsb = uuid.getLeastSignificantBits();
-        float r = (float) ((lsb & 0xFF000000) >> 24) / 255f;
-        float g = (float) ((lsb & 0x00FF0000) >> 16) / 255f;
-        float b = (float) ((lsb & 0x0000FF00) >> 8) / 255f;
+        float r = ((color >> 16) & 0xFF) / 255f;
+        float g = ((color >> 8) & 0xFF) / 255f;
+        float b = (color & 0xFF) / 255f;
 
         buffer.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_COLOR);
         buffer.vertex(posMatrix, -0.5f, 0.5f, 0).color(r, g, b, 1f).endVertex();
@@ -66,12 +65,14 @@ public class MarkerRenderer {
     public static void handleMarkerInfoPacket(Minecraft minecraft, ClientPacketListener listener, FriendlyByteBuf buf, PacketSender responseSender) {
         int markerCount = buf.readInt();
 
-        HashMap<UUID, Vec3> incomingMarkers = new HashMap<>();
+        HashMap<UUID, Pair<Vec3, Long>> incomingMarkers = new HashMap<>();
 
         for (int i = 0; i < markerCount; i++) {
             UUID markerUUID = buf.readUUID();
             Vec3 markerPos = buf.readVec3();
-            incomingMarkers.put(markerUUID, markerPos);
+            long markerColor = buf.readLong();
+
+            incomingMarkers.put(markerUUID, Pair.of(markerPos, markerColor));
         }
 
         minecraft.execute(() -> markers = incomingMarkers);
