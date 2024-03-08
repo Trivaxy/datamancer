@@ -6,7 +6,7 @@ import xyz.trivaxy.datamancer.util.LongRingBuffer;
 public final class PerformanceEntry {
 
     private final ResourceLocation functionId;
-    private final LongRingBuffer data = new LongRingBuffer(50);
+    private final LongRingBuffer data = new LongRingBuffer(300);
     private long totalExecutionCount = 0;
 
     public PerformanceEntry(ResourceLocation functionId) {
