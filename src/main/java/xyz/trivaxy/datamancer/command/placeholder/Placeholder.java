@@ -12,8 +12,6 @@ import net.minecraft.commands.arguments.coordinates.BlockPosArgument;
 import net.minecraft.commands.arguments.coordinates.Coordinates;
 import net.minecraft.commands.arguments.selector.EntitySelector;
 import net.minecraft.core.BlockPos;
-import net.minecraft.nbt.NbtUtils;
-import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.server.ServerScoreboard;
@@ -27,6 +25,7 @@ import net.minecraft.world.level.storage.CommandStorage;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.scores.Objective;
 import net.minecraft.world.scores.ScoreHolder;
+import xyz.trivaxy.datamancer.util.OurComponentUtils;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -77,7 +76,7 @@ public class Placeholder {
                             return Component.literal("None");
                         }
 
-                        return getPrettyPrintedTag(NbtPredicate.getEntityTagToCompare(entity), arguments.get(1));
+                        return OurComponentUtils.getPrettyPrintedTag(NbtPredicate.getEntityTagToCompare(entity), arguments.get(1));
                     }),
             "block", new PlaceholderBuilder()
                     .argument(BlockPosArgument.blockPos())
@@ -95,7 +94,7 @@ public class Placeholder {
                         if (blockEntity == null)
                             return Component.literal("None");
 
-                        return getPrettyPrintedTag(new BlockDataAccessor(blockEntity, pos).getData(), arguments.get(1));
+                        return OurComponentUtils.getPrettyPrintedTag(new BlockDataAccessor(blockEntity, pos).getData(), arguments.get(1));
                     }),
             "storage", new PlaceholderBuilder()
                     .argument(ResourceLocationArgument.id())
@@ -103,7 +102,7 @@ public class Placeholder {
                     .process((context, arguments) -> {
                         CommandStorage storage = context.getServer().getCommandStorage();
 
-                        return getPrettyPrintedTag(storage.get(arguments.get(0)), arguments.get(1));
+                        return OurComponentUtils.getPrettyPrintedTag(storage.get(arguments.get(0)), arguments.get(1));
                     }),
             "list", new PlaceholderBuilder()
                     .argument(EntityArgument.entities())
@@ -114,7 +113,7 @@ public class Placeholder {
                         if (entities.isEmpty())
                             return Component.literal("None");
 
-                        return joinComponents(entities.stream().map(Entity::getDisplayName).collect(Collectors.toList()), ", ");
+                        return OurComponentUtils.joinComponents(entities.stream().map(Entity::getDisplayName).collect(Collectors.toList()), ", ");
                     }),
             "state", new PlaceholderBuilder()
                     .argument(BlockPosArgument.blockPos())
@@ -202,33 +201,6 @@ public class Placeholder {
 
         if (actual > max)
             throw new PlaceholderException("Too many arguments, expected at most " + max);
-    }
-
-    private static Component getPrettyPrintedTag(Tag tag, NbtPathArgument.NbtPath path) throws CommandSyntaxException {
-        if (path == null)
-            return NbtUtils.toPrettyComponent(tag);
-
-        List<Tag> nbtInPath = path.get(tag);
-
-        Component result = nbtInPath
-                .stream()
-                .map(NbtUtils::toPrettyComponent)
-                .reduce(Component.empty(), (acc, c) -> ((MutableComponent)acc).append(" ").append(c));
-
-        return result;
-    }
-
-    private static Component joinComponents(List<Component> components, String separator) {
-        MutableComponent result = Component.empty();
-
-        for (int i = 0; i < components.size(); i++) {
-            result.append(components.get(i));
-
-            if (i < components.size() - 1)
-                result.append(separator);
-        }
-
-        return result;
     }
 
     private static Component prettyPrintBlockState(BlockState state) {
