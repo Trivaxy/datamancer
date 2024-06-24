@@ -1,19 +1,19 @@
 package xyz.trivaxy.datamancer;
 
-import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
+import com.mojang.datafixers.util.Pair;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
-import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Marker;
+import net.minecraft.world.phys.Vec3;
 import xyz.trivaxy.datamancer.access.MarkerListenerAccess;
+import xyz.trivaxy.datamancer.networking.packet.marker.MarkerGogglesInfoPacket;
 
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.Collection;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 public class MarkerInfoHandler {
 
@@ -25,38 +25,23 @@ public class MarkerInfoHandler {
             if (!player.hasPermissions(2) || !((MarkerListenerAccess) player).isListeningForMarkers())
                 return;
 
-            FriendlyByteBuf markerInfo = createMarkerInfoByteBuf(player.serverLevel().getEntitiesOfClass(Marker.class, player.getBoundingBox().inflate(20)));
-            ServerPlayNetworking.send(player, MARKER_INFO_PACKET_ID, markerInfo);
+            MarkerGogglesInfoPacket packet = createMarkerInfoPacketFor(player);
+            ServerPlayNetworking.send(player, packet);
         });
     }
 
-    private static FriendlyByteBuf createMarkerInfoByteBuf(List<Marker> markers) {
-        FriendlyByteBuf buf = PacketByteBufs.create();
+    private static MarkerGogglesInfoPacket createMarkerInfoPacketFor(ServerPlayer player) {
+        List<Marker> markers = player
+            .serverLevel()
+            .getEntitiesOfClass(Marker.class, player.getBoundingBox().inflate(20));
 
-        buf.writeInt(markers.size());
+        Map<UUID, Pair<Vec3, Integer>> markerInfo = new HashMap<>();
 
         for (Marker marker : markers) {
-            buf.writeUUID(marker.getUUID());
-            buf.writeVec3(marker.position());
-            buf.writeLong(calculateMarkerColor(marker));
+            markerInfo.put(marker.getUUID(), Pair.of(marker.position(), calculateMarkerColor(marker)));
         }
 
-        return buf;
-    }
-
-    private static int calculateTagsColor(Collection<String> tags) {
-        try {
-            MessageDigest digest = MessageDigest.getInstance("SHA-256");
-
-            for (String tag : tags) {
-                digest.update(tag.getBytes(StandardCharsets.UTF_8));
-            }
-
-            byte[] hash = digest.digest();
-            return (hash[0] & 0xFF) << 16 | (hash[1] & 0xFF) << 8 | (hash[2] & 0xFF);
-        } catch (NoSuchAlgorithmException e) {
-            throw new RuntimeException("SHA-256 algorithm not found. What kind of system are you running on???", e);
-        }
+        return new MarkerGogglesInfoPacket(markerInfo);
     }
 
     private static int calculateUUIDColor(UUID uuid) {
@@ -67,7 +52,7 @@ public class MarkerInfoHandler {
             byte[] hash = digest.digest();
             return (hash[0] & 0xFF) << 16 | (hash[1] & 0xFF) << 8 | (hash[2] & 0xFF);
         } catch (NoSuchAlgorithmException e) {
-            throw new RuntimeException("SHA-256 algorithm not found. What kind of system are you running on???", e);
+            throw new RuntimeException("SHA-256 implementation not found. What kind of system are you running on???", e);
         }
     }
 
@@ -85,5 +70,20 @@ public class MarkerInfoHandler {
         double gamma = 1.2;
         double correctedComponent = 255.0 * Math.pow(component / 255.0, gamma);
         return (int) Math.min(255, correctedComponent);
+    }
+
+    private static int calculateTagsColor(Collection<String> tags) {
+        try {
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+
+            for (String tag : tags) {
+                digest.update(tag.getBytes(StandardCharsets.UTF_8));
+            }
+
+            byte[] hash = digest.digest();
+            return (hash[0] & 0xFF) << 16 | (hash[1] & 0xFF) << 8 | (hash[2] & 0xFF);
+        } catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException("SHA-256 implementation not found. What kind of system are you running on???", e);
+        }
     }
 }

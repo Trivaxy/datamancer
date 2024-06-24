@@ -11,8 +11,8 @@ import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.players.PlayerList;
 import xyz.trivaxy.datamancer.Datamancer;
-import xyz.trivaxy.datamancer.command.placeholder.PlaceholderException;
 import xyz.trivaxy.datamancer.command.placeholder.Placeholder;
+import xyz.trivaxy.datamancer.command.placeholder.PlaceholderException;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;

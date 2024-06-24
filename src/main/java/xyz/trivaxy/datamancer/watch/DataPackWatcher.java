@@ -1,13 +1,9 @@
 package xyz.trivaxy.datamancer.watch;
 
 import com.google.common.collect.ImmutableSet;
+import com.mojang.serialization.Codec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
 import com.sun.nio.file.ExtendedWatchEventModifier;
-import dev.onyxstudios.cca.api.v3.component.ComponentKey;
-import dev.onyxstudios.cca.api.v3.component.ComponentRegistry;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.ListTag;
-import net.minecraft.nbt.StringTag;
-import net.minecraft.nbt.Tag;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.packs.repository.PackRepository;
 import net.minecraft.world.level.storage.LevelResource;
@@ -21,11 +17,10 @@ import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-public class DataPackWatcher implements WatcherStateComponent {
+public class DataPackWatcher {
 
     private ExecutorService EXECUTOR_SERVICE = Executors.newSingleThreadExecutor();
-    public Set<String> watchedPackIds = new HashSet<>();
-    public boolean active = false;
+    private State watcherState;
 
     private static final Set<String> watchedFileExtensions = ImmutableSet.of(
             "mcfunction",
@@ -34,34 +29,22 @@ public class DataPackWatcher implements WatcherStateComponent {
             "mcmeta"
     );
 
-    public static final ComponentKey<WatcherStateComponent> KEY = ComponentRegistry.getOrCreate(Datamancer.in("watcher"), WatcherStateComponent.class);
+    public DataPackWatcher(State state) {
+        watcherState = state;
+    }
 
-    @Override
     public void watchPack(String id) {
-        watchedPackIds.add(id);
+        watcherState.watchedPackIds.add(id);
     }
 
-    @Override
     public void unwatchPack(String id) {
-        watchedPackIds.remove(id);
+        watcherState.watchedPackIds.remove(id);
     }
 
-    @Override
-    public boolean isActive() {
-        return active;
-    }
-
-    @Override
     public boolean isWatching(String id) {
-        return watchedPackIds.contains(id);
+        return watcherState.watchedPackIds.contains(id);
     }
 
-    @Override
-    public Collection<String> getWatchList() {
-        return Collections.unmodifiableSet(watchedPackIds);
-    }
-
-    @Override
     public void start(MinecraftServer server) {
         PackRepository repo = server.getPackRepository();
         Path datapacksFolder = server.getWorldPath(LevelResource.DATAPACK_DIR);
@@ -94,7 +77,7 @@ public class DataPackWatcher implements WatcherStateComponent {
 
                         List<WatchEvent<?>> events = key.pollEvents();
 
-                        if (events.isEmpty() || watchedPackIds.isEmpty()) {
+                        if (events.isEmpty() || watcherState.watchedPackIds.isEmpty()) {
                             key.reset();
                             continue;
                         }
@@ -146,42 +129,16 @@ public class DataPackWatcher implements WatcherStateComponent {
             Datamancer.logError("Failed to start DataPackWatcher", e);
         }
 
-        active = true;
+        watcherState.active = true;
     }
 
-    @Override
     public void stop() {
         EXECUTOR_SERVICE.shutdownNow();
-        EXECUTOR_SERVICE = Executors.newSingleThreadExecutor();
     }
 
-    @Override
     public void shutdown() {
         stop();
-        active = false;
-    }
-
-    @Override
-    public void readFromNbt(CompoundTag tag) {
-        ListTag watched = tag.getList("watched_packs", Tag.TAG_STRING);
-
-        for (Tag t : watched) {
-            watchedPackIds.add(t.getAsString());
-        }
-
-        active = tag.getBoolean("watcher_started");
-    }
-
-    @Override
-    public void writeToNbt(CompoundTag tag) {
-        ListTag watched = new ListTag();
-
-        for (String id : watchedPackIds) {
-            watched.add(StringTag.valueOf(id));
-        }
-
-        tag.put("watched_packs", watched);
-        tag.putBoolean("watcher_started", active);
+        watcherState.active = false;
     }
 
     private boolean shouldAcceptWatchEvent(WatchEvent<?> event) {
@@ -194,5 +151,42 @@ public class DataPackWatcher implements WatcherStateComponent {
         }
 
         return watchedFileExtensions.contains(FilenameUtils.getExtension(file.getName()));
+    }
+
+    public boolean isActive() {
+        return watcherState.active;
+    }
+
+    public Collection<String> getWatchList() {
+        return watcherState.watchedPackIds;
+    }
+
+    public static class State {
+        private final Set<String> watchedPackIds;
+        private boolean active;
+
+        public static final Codec<State> CODEC = RecordCodecBuilder.create(instance -> instance.group(
+                Codec.STRING.listOf().xmap(Set::copyOf, List::copyOf).fieldOf("watched_pack_ids").forGetter(State::getWatchedPacks),
+                Codec.BOOL.fieldOf("active").forGetter(State::isActive)
+        ).apply(instance, State::new));
+
+        public State(Set<String> watchedPackIds, boolean active) {
+            this.watchedPackIds = watchedPackIds;
+            this.active = active;
+        }
+
+        public static State empty() {
+            return new State(new HashSet<>(), false);
+        }
+
+        // for codec
+
+        private Set<String> getWatchedPacks() {
+            return watchedPackIds;
+        }
+
+        private boolean isActive() {
+            return active;
+        }
     }
 }

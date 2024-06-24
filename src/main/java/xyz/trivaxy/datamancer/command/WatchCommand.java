@@ -11,8 +11,8 @@ import net.minecraft.network.chat.ComponentUtils;
 import net.minecraft.server.packs.repository.Pack;
 import net.minecraft.server.packs.repository.PackRepository;
 import net.minecraft.server.packs.repository.PackSource;
+import xyz.trivaxy.datamancer.Datamancer;
 import xyz.trivaxy.datamancer.watch.DataPackWatcher;
-import xyz.trivaxy.datamancer.watch.WatcherStateComponent;
 
 import java.util.Collection;
 
@@ -35,7 +35,7 @@ public class WatchCommand extends DatamancerCommand {
                                 .suggests(SELECTED_PACKS)
                                 .executes(context -> {
                                     String packName = StringArgumentType.getString(context, "pack");
-                                    WatcherStateComponent watcher = getWatcher(context.getSource());
+                                    DataPackWatcher watcher = Datamancer.getWatcher();
                                     Pack pack = context.getSource().getServer().getPackRepository().getPack(packName);
 
                                     if (pack == null) {
@@ -62,7 +62,7 @@ public class WatchCommand extends DatamancerCommand {
                                 .suggests(SELECTED_PACKS)
                                 .executes(context -> {
                                     String packName = StringArgumentType.getString(context, "pack");
-                                    WatcherStateComponent watcher = getWatcher(context.getSource());
+                                    DataPackWatcher watcher = Datamancer.getWatcher();
                                     Pack pack = context.getSource().getServer().getPackRepository().getPack(packName);
 
                                     if (pack == null) {
@@ -86,7 +86,7 @@ public class WatchCommand extends DatamancerCommand {
                 )
                 .then(Commands.literal("start")
                         .executes(context -> {
-                            WatcherStateComponent watcher = getWatcher(context.getSource());
+                            DataPackWatcher watcher = Datamancer.getWatcher();
 
                             if (watcher.isActive()) {
                                 replyFailure(context.getSource(), Component.literal("Watcher already active"));
@@ -101,7 +101,7 @@ public class WatchCommand extends DatamancerCommand {
                 )
                 .then(Commands.literal("stop")
                         .executes(context -> {
-                            WatcherStateComponent watcher = getWatcher(context.getSource());
+                            DataPackWatcher watcher = Datamancer.getWatcher();
 
                             if (!watcher.isActive()) {
                                 replyFailure(context.getSource(), Component.literal("Watcher not active"));
@@ -115,7 +115,7 @@ public class WatchCommand extends DatamancerCommand {
                 )
                 .then(Commands.literal("list")
                         .executes(context -> {
-                            WatcherStateComponent watcher = getWatcher(context.getSource());
+                            DataPackWatcher watcher = Datamancer.getWatcher();
                             Collection<String> watchList = watcher.getWatchList();
 
                             if (watchList.isEmpty()) {
@@ -147,10 +147,4 @@ public class WatchCommand extends DatamancerCommand {
 
         return pack.getChatLink(true);
     }
-
-    private static WatcherStateComponent getWatcher(CommandSourceStack source) {
-        return DataPackWatcher.KEY.get(source.getLevel().getLevelData());
-    }
-
-
 }

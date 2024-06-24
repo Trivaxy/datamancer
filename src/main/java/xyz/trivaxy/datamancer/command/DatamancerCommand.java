@@ -5,7 +5,7 @@ import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.TextColor;
 
-import static net.minecraft.commands.Commands.*;
+import static net.minecraft.commands.Commands.CommandSelection;
 
 @SuppressWarnings("StaticInitializerReferencesSubClass")
 public abstract class DatamancerCommand {

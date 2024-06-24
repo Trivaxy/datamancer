@@ -1,7 +1,5 @@
 package xyz.trivaxy.datamancer;
 
-import dev.onyxstudios.cca.api.v3.level.LevelComponentFactoryRegistry;
-import dev.onyxstudios.cca.api.v3.level.LevelComponentInitializer;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
@@ -11,35 +9,37 @@ import net.minecraft.world.level.Level;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import xyz.trivaxy.datamancer.command.DatamancerCommand;
+import xyz.trivaxy.datamancer.networking.packet.DatamancerPackets;
 import xyz.trivaxy.datamancer.profile.FunctionProfiler;
 import xyz.trivaxy.datamancer.watch.DataPackWatcher;
-import xyz.trivaxy.datamancer.watch.WatcherStateComponent;
 
-public class Datamancer implements ModInitializer, LevelComponentInitializer {
+public class Datamancer implements ModInitializer {
 
     public static final String MOD_ID = "datamancer";
     private static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
+    private static DataPackWatcher watcher;
 
     @Override
     public void onInitialize() {
+        DatamancerPackets.registerPacketTypes();
         CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> DatamancerCommand.registerCommands(dispatcher, environment));
         ServerLifecycleEvents.START_DATA_PACK_RELOAD.register(((server, resourceManager) -> FunctionProfiler.getInstance().restart()));
         ServerLifecycleEvents.SERVER_STARTED.register(server -> {
-            WatcherStateComponent watcher = DataPackWatcher.KEY.get(server.getLevel(Level.OVERWORLD).getLevelData());
+            watcher = new DataPackWatcher(server.getLevel(Level.OVERWORLD).getAttachedOrCreate(Attachments.WATCHER_STATE_ATTACHMENT, DataPackWatcher.State::empty));
+
             if (watcher.isActive())
                 watcher.start(server);
         });
-        ServerLifecycleEvents.SERVER_STOPPING.register(server -> DataPackWatcher.KEY.get(server.getLevel(Level.OVERWORLD).getLevelData()).stop());
+        ServerLifecycleEvents.SERVER_STOPPING.register(server -> watcher.stop());
         ServerTickEvents.END_SERVER_TICK.register(MarkerInfoHandler::sendMarkerInfoToPlayers);
     }
 
-    @Override
-    public void registerLevelComponentFactories(LevelComponentFactoryRegistry registry) {
-        registry.register(DataPackWatcher.KEY, level -> new DataPackWatcher());
+    public static DataPackWatcher getWatcher() {
+        return watcher;
     }
 
     public static ResourceLocation in(String path) {
-        return new ResourceLocation(MOD_ID, path);
+        return ResourceLocation.fromNamespaceAndPath(MOD_ID, path);
     }
 
     public static String inRaw(String path) {

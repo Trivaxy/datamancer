@@ -2,7 +2,9 @@ package xyz.trivaxy.datamancer.tracker;
 
 import net.minecraft.server.MinecraftServer;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
 
 public class TrackerList {
 

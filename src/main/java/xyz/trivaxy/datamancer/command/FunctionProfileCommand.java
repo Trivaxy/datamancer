@@ -7,8 +7,8 @@ import net.minecraft.commands.Commands;
 import net.minecraft.network.chat.ClickEvent;
 import net.minecraft.network.chat.Component;
 import xyz.trivaxy.datamancer.Datamancer;
-import xyz.trivaxy.datamancer.profile.FunctionReport;
 import xyz.trivaxy.datamancer.profile.FunctionProfiler;
+import xyz.trivaxy.datamancer.profile.FunctionReport;
 
 import static net.minecraft.commands.Commands.literal;
 

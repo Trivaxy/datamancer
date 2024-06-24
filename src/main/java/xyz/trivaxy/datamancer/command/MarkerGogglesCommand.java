@@ -2,14 +2,13 @@ package xyz.trivaxy.datamancer.command;
 
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.context.CommandContext;
-import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import xyz.trivaxy.datamancer.access.MarkerListenerAccess;
-import xyz.trivaxy.datamancer.MarkerInfoHandler;
+import xyz.trivaxy.datamancer.networking.packet.marker.MarkerGogglesOffPacket;
 
 import static net.minecraft.commands.Commands.literal;
 
@@ -40,7 +39,7 @@ public class MarkerGogglesCommand extends DatamancerCommand {
 
         if (listener.isListeningForMarkers()) {
             listener.setListeningForMarkers(false);
-            ServerPlayNetworking.send(player, MarkerInfoHandler.MARKER_GOGGLES_OFF, PacketByteBufs.empty());
+            ServerPlayNetworking.send(player, new MarkerGogglesOffPacket());
             replySuccess(context.getSource(), Component.literal("Disabled marker goggles"));
         } else {
             listener.setListeningForMarkers(true);
