@@ -64,6 +64,9 @@ public class TrackCommand extends DatamancerCommand {
                     )
                 )
             )
+            .then(literal("clear")
+                .executes(this::clearTrackerForPlayer)
+            )
         );
     }
 
@@ -88,6 +91,11 @@ public class TrackCommand extends DatamancerCommand {
 
     private int trackStorageEntryForPlayer(CommandContext<CommandSourceStack> context, ResourceLocation storage, NbtPathArgument.NbtPath path) {
         Datamancer.getTracker().addTrackableForPlayer(context.getSource().getPlayer(), new TrackedStorageEntry(storage, path));
+        return 1;
+    }
+
+    private int clearTrackerForPlayer(CommandContext<CommandSourceStack> context) {
+        Datamancer.getTracker().clearTrackablesForPlayer(context.getSource().getPlayer());
         return 1;
     }
 }

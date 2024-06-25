@@ -7,15 +7,18 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
+import xyz.trivaxy.datamancer.networking.packet.tracker.ClearTrackerPacket;
 import xyz.trivaxy.datamancer.networking.packet.tracker.TrackerInfoPacket;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class TrackerRenderer {
 
     private static List<Pair<Component, Component>> entries = new ArrayList<>();
     private static final int LINE_PADDING = 2;
+    private static final int MAX_VALUE_LENGTH = 8;
 
     public static void renderTracker(GuiGraphics guiGraphics, DeltaTracker delta) {
         if (entries.isEmpty())
@@ -50,7 +53,11 @@ public class TrackerRenderer {
                     (Component) Component.Serializer.fromJson(entry.getFirst(), context.player().registryAccess()),
                     (Component) Component.Serializer.fromJson(entry.getSecond(), context.player().registryAccess()))
                 )
-                .toList();
+                .collect(Collectors.toList());
         });
+    }
+
+    public static void handleClearPacket(ClearTrackerPacket clearTrackerPacket, ClientPlayNetworking.Context context) {
+        context.client().execute(() -> entries.clear());
     }
 }

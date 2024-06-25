@@ -3,6 +3,7 @@ package xyz.trivaxy.datamancer.networking.packet;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import xyz.trivaxy.datamancer.networking.packet.marker.MarkerGogglesInfoPacket;
 import xyz.trivaxy.datamancer.networking.packet.marker.MarkerGogglesOffPacket;
+import xyz.trivaxy.datamancer.networking.packet.tracker.ClearTrackerPacket;
 import xyz.trivaxy.datamancer.networking.packet.tracker.TrackerInfoPacket;
 
 public class DatamancerPackets {
@@ -11,5 +12,6 @@ public class DatamancerPackets {
         PayloadTypeRegistry.playS2C().register(MarkerGogglesOffPacket.PACKET_ID, MarkerGogglesOffPacket.PACKET_CODEC);
         PayloadTypeRegistry.playS2C().register(MarkerGogglesInfoPacket.PACKET_ID, MarkerGogglesInfoPacket.PACKET_CODEC);
         PayloadTypeRegistry.playS2C().register(TrackerInfoPacket.PACKET_ID, TrackerInfoPacket.PACKET_CODEC);
+        PayloadTypeRegistry.playS2C().register(ClearTrackerPacket.PACKET_ID, ClearTrackerPacket.PACKET_CODEC);
     }
 }

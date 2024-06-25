@@ -6,6 +6,7 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
+import xyz.trivaxy.datamancer.networking.packet.tracker.ClearTrackerPacket;
 import xyz.trivaxy.datamancer.networking.packet.tracker.TrackerInfoPacket;
 
 import java.util.ArrayList;
@@ -48,5 +49,10 @@ public class ServerTracker {
 
     private TrackerList getOrCreateTrackerForPlayer(ServerPlayer player) {
         return perPlayerTracker.computeIfAbsent(player, k -> new TrackerList());
+    }
+
+    public void clearTrackablesForPlayer(ServerPlayer player) {
+        perPlayerTracker.remove(player);
+        ServerPlayNetworking.send(player, new ClearTrackerPacket());
     }
 }
