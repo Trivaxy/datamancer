@@ -10,6 +10,4 @@ public interface Trackable {
     Component getTitle(MinecraftServer server);
 
     Component getValue(MinecraftServer server);
-
-    String getId();
 }

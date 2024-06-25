@@ -11,6 +11,7 @@ import org.slf4j.LoggerFactory;
 import xyz.trivaxy.datamancer.command.DatamancerCommand;
 import xyz.trivaxy.datamancer.networking.packet.DatamancerPackets;
 import xyz.trivaxy.datamancer.profile.FunctionProfiler;
+import xyz.trivaxy.datamancer.tracker.ServerTracker;
 import xyz.trivaxy.datamancer.watch.DataPackWatcher;
 
 public class Datamancer implements ModInitializer {
@@ -18,6 +19,7 @@ public class Datamancer implements ModInitializer {
     public static final String MOD_ID = "datamancer";
     private static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
     private static DataPackWatcher watcher;
+    private static ServerTracker tracker;
 
     @Override
     public void onInitialize() {
@@ -29,13 +31,20 @@ public class Datamancer implements ModInitializer {
 
             if (watcher.isActive())
                 watcher.start(server);
+
+            tracker = new ServerTracker(server);
         });
         ServerLifecycleEvents.SERVER_STOPPING.register(server -> watcher.stop());
         ServerTickEvents.END_SERVER_TICK.register(MarkerInfoHandler::sendMarkerInfoToPlayers);
+        ServerTickEvents.END_SERVER_TICK.register(server -> tracker.sendAllTrackedInfo());
     }
 
     public static DataPackWatcher getWatcher() {
         return watcher;
+    }
+
+    public static ServerTracker getTracker() {
+        return tracker;
     }
 
     public static ResourceLocation in(String path) {

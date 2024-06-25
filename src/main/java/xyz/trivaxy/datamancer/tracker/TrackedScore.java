@@ -31,11 +31,6 @@ public class TrackedScore implements Trackable {
         return getScoreInfo(server).formatValue(StyledFormat.SIDEBAR_DEFAULT);
     }
 
-    @Override
-    public String getId() {
-        return "score:" + scoreHolder + ":" + objective;
-    }
-
     private ReadOnlyScoreInfo getScoreInfo(MinecraftServer server) {
         return server.getScoreboard().getPlayerScoreInfo(ScoreHolder.forNameOnly(scoreHolder), server.getScoreboard().getObjective(objective));
     }

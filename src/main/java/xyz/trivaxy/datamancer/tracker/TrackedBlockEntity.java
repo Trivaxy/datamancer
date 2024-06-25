@@ -37,11 +37,6 @@ public class TrackedBlockEntity implements Trackable {
         return OurComponentUtils.getPrettyPrintedTag(new BlockDataAccessor(getBlockEntity(server), pos).getData(), path);
     }
 
-    @Override
-    public String getId() {
-        return "be:" + level.location() + ":" + pos + (path != null ? ":" + path : "");
-    }
-
     private BlockEntity getBlockEntity(MinecraftServer server) {
         return server.getLevel(level).getBlockEntity(pos);
     }

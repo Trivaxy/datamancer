@@ -1,29 +1,21 @@
 package xyz.trivaxy.datamancer.tracker;
 
-import net.minecraft.server.MinecraftServer;
-
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
+import java.util.*;
 
 public class TrackerList {
 
     public static final int MAX_DATA_LENGTH = 40;
-    private Map<String, Trackable> trackers = new HashMap<>();
+    private final List<Trackable> trackers = new ArrayList<>();
 
     public void addTracker(Trackable tracker) {
-        trackers.put(tracker.getId(), tracker);
+        trackers.add(tracker);
     }
 
-    public void removeTrackerById(String id) {
-        trackers.remove(id);
+    public Collection<Trackable> getTrackers() {
+        return trackers;
     }
 
-    public void update(MinecraftServer server) {
-        trackers.entrySet().removeIf(entry -> !entry.getValue().canTrack(server));
-    }
-
-    public Iterator<Trackable> getTrackers() {
-        return trackers.values().iterator();
+    public int size() {
+        return trackers.size();
     }
 }

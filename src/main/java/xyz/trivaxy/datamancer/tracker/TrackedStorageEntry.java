@@ -35,9 +35,4 @@ public class TrackedStorageEntry implements Trackable {
     public Component getValue(MinecraftServer server) {
         return OurComponentUtils.getPrettyPrintedTag(server.getCommandStorage().get(storageId), path);
     }
-
-    @Override
-    public String getId() {
-        return "storage:" + storageId + (path != null ? ":" + path : "");
-    }
 }

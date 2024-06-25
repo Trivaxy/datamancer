@@ -35,11 +35,6 @@ public class TrackedEntity implements Trackable {
         return OurComponentUtils.getPrettyPrintedTag(NbtPredicate.getEntityTagToCompare(getEntity(server)), path);
     }
 
-    @Override
-    public String getId() {
-        return "entity:" + entityId;
-    }
-
     private Entity getEntity(MinecraftServer server) {
         for (ServerLevel level : server.getAllLevels()) {
             Entity entity = level.getEntity(entityId);
