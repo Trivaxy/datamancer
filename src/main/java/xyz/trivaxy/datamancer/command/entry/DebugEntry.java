@@ -43,7 +43,7 @@ public class DebugEntry<T extends ExecutionCommandSource<T>> implements UnboundE
         }
     }
 
-    private static Component processTemplate(CommandSourceStack commandSourceStack, String template) throws PlaceholderException, CommandSyntaxException {
+    public static Component processTemplate(CommandSourceStack commandSourceStack, String template) throws PlaceholderException, CommandSyntaxException {
         Matcher matcher = PLACEHOLDER_REGEX_PATTERN.matcher(template);
         MutableComponent processedTemplate = Component.empty();
 

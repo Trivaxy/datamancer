@@ -4,18 +4,36 @@ import java.util.*;
 
 public class TrackerList {
 
-    public static final int MAX_DATA_LENGTH = 40;
-    private final List<Trackable> trackers = new ArrayList<>();
+    private final List<String> templates;
 
-    public void addTracker(Trackable tracker) {
-        trackers.add(tracker);
+    public TrackerList(List<String> templates) {
+        this.templates = templates;
     }
 
-    public Collection<Trackable> getTrackers() {
-        return trackers;
+    public TrackerList() {
+        this.templates = new ArrayList<>();
+    }
+
+    public void addTemplate(String template) {
+        templates.add(template);
+    }
+
+    public List<String> getTemplates() {
+        return templates;
     }
 
     public int size() {
-        return trackers.size();
+        return templates.size();
+    }
+
+    public void removeAt(int index) {
+        if (index < 0 || index >= templates.size())
+            return;
+
+        templates.remove(index);
+    }
+
+    public void clear() {
+        templates.clear();
     }
 }

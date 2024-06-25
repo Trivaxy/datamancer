@@ -2,6 +2,7 @@ package xyz.trivaxy.datamancer.client.rendering.tracker;
 
 import com.mojang.datafixers.util.Pair;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
+import net.minecraft.ChatFormatting;
 import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
@@ -16,7 +17,7 @@ import java.util.stream.Collectors;
 
 public class TrackerRenderer {
 
-    private static List<Pair<Component, Component>> entries = new ArrayList<>();
+    private static List<Component> entries = new ArrayList<>();
     private static final int LINE_PADDING = 2;
     private static final int MAX_VALUE_LENGTH = 8;
 
@@ -26,20 +27,22 @@ public class TrackerRenderer {
 
         Font font = Minecraft.getInstance().font;
         int trackerHeight = entries.size() * (font.lineHeight + LINE_PADDING);
-        int trackerWidth = entries
+        int maxExpandedWidth = entries
             .stream()
-            .map(entry -> font.width(entry.getFirst()) + font.width(": ") + font.width(entry.getSecond()))
+            .map(font::width)
             .max(Integer::compareTo)
             .get();
 
         guiGraphics.drawManaged(() -> {
-            guiGraphics.fill(0, guiGraphics.guiHeight() / 2 - trackerHeight / 2, trackerWidth, guiGraphics.guiHeight() / 2 + trackerHeight / 2, Minecraft.getInstance().options.getBackgroundColor(0.7f));
+            guiGraphics.fill(0, guiGraphics.guiHeight() / 2 - trackerHeight / 2, maxExpandedWidth + font.width("00") + 2, guiGraphics.guiHeight() / 2 + trackerHeight / 2, Minecraft.getInstance().options.getBackgroundColor(0.7f));
 
             int y = guiGraphics.guiHeight() / 2 - trackerHeight / 2 + LINE_PADDING;
+            int i = 0;
             for (var entry : entries) {
-                guiGraphics.drawString(font, entry.getFirst(), 2, y, -1);
-                guiGraphics.drawString(font, entry.getSecond(), trackerWidth - font.width(entry.getSecond() ) - 2, y, -1);
+                guiGraphics.drawString(font, String.valueOf(i), 2, y, ChatFormatting.RED.getColor());
+                guiGraphics.drawString(font, entry, font.width("00") + 1, y, -1);
                 y += font.lineHeight + LINE_PADDING;
+                i++;
             }
         });
     }
@@ -49,10 +52,7 @@ public class TrackerRenderer {
             entries = trackerInfoPacket
                 .entries()
                 .stream()
-                .map(entry -> Pair.of(
-                    (Component) Component.Serializer.fromJson(entry.getFirst(), context.player().registryAccess()),
-                    (Component) Component.Serializer.fromJson(entry.getSecond(), context.player().registryAccess()))
-                )
+                .map(entry -> (Component) Component.Serializer.fromJson(entry, context.player().registryAccess()))
                 .collect(Collectors.toList());
         });
     }

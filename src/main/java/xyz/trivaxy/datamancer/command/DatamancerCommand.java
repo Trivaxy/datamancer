@@ -31,7 +31,7 @@ public abstract class DatamancerCommand {
         new WatchCommand(),
         new MakeCommand(),
         new OpenCommand(),
-        new TrackCommand()
+        new TrackerCommand()
     };
 
     public static void registerCommands(CommandDispatcher<CommandSourceStack> dispatcher, CommandSelection environment) {
