@@ -4,6 +4,8 @@ import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.suggestion.SuggestionProvider;
 import net.minecraft.ChatFormatting;
+import net.minecraft.Util;
+import net.minecraft.client.Minecraft;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.commands.SharedSuggestionProvider;
@@ -13,6 +15,7 @@ import net.minecraft.server.packs.repository.Pack;
 import net.minecraft.world.level.storage.LevelResource;
 import xyz.trivaxy.datamancer.Datamancer;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 
@@ -50,38 +53,17 @@ public class OpenCommand extends DatamancerCommand {
                         return 0;
                     }
 
-                    try {
-                        openFolder(packFolder);
+                    Component fileLink = Component
+                        .literal("Opened pack successfully.")
+                        .withStyle(ChatFormatting.UNDERLINE)
+                        .withStyle(style -> style.withClickEvent(new ClickEvent(ClickEvent.Action.OPEN_FILE, packFolder.toAbsolutePath().toString())));
 
-                        Component fileLink = Component
-                            .literal("Opened pack successfully.")
-                            .withStyle(ChatFormatting.UNDERLINE)
-                            .withStyle(style -> style.withClickEvent(new ClickEvent(ClickEvent.Action.OPEN_FILE, packFolder.toAbsolutePath().toString())));
+                    Util.getPlatform().openFile(new File(packFolder.toAbsolutePath().toString()));
 
-                        replySuccess(context.getSource(), fileLink);
-                        return 1;
-                    } catch (IOException e) {
-                        replyFailure(context.getSource(), Component.literal("Failed to open pack folder"));
-                        Datamancer.logError("Failed to open datapack \"" + packFolder + "\":" + e.getMessage());
-                        return 0;
-                    }
+                    replySuccessClientside(fileLink);
+                    return 1;
                 })
             )
         );
-    }
-
-    // Because we don't want to use AWT
-    private static void openFolder(Path folder) throws IOException {
-        Runtime rt = Runtime.getRuntime();
-        String os = System.getProperty("os.name").toLowerCase();
-        String path = "\"" + folder.toAbsolutePath() + "\"";
-
-        if (os.contains("win")) {
-            rt.exec("explorer.exe " + path);
-        } else if (os.contains("mac")) {
-            rt.exec("open " + path);
-        } else if (os.contains("nix") || os.contains("nux")) {
-            rt.exec("xdg-open " + path);
-        }
     }
 }

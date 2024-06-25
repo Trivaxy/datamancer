@@ -1,6 +1,7 @@
 package xyz.trivaxy.datamancer.command;
 
 import com.mojang.brigadier.CommandDispatcher;
+import net.minecraft.client.Minecraft;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.TextColor;
@@ -20,6 +21,10 @@ public abstract class DatamancerCommand {
         source.sendSuccess(() -> Component.empty().append(PREFIX).append(message), false);
     }
 
+    protected final void replySuccessClientside(Component message) {
+        ClientsidePrinter.printToChat(Component.empty().append(PREFIX).append(message));
+    }
+
     protected final void replyFailure(CommandSourceStack source, Component message) {
         source.sendFailure(Component.empty().append(PREFIX).append(message));
     }
@@ -37,6 +42,13 @@ public abstract class DatamancerCommand {
     public static void registerCommands(CommandDispatcher<CommandSourceStack> dispatcher, CommandSelection environment) {
         for (DatamancerCommand command : COMMANDS) {
             command.register(dispatcher, environment);
+        }
+    }
+
+    protected static class ClientsidePrinter {
+
+        public static void printToChat(Component component) {
+            Minecraft.getInstance().gui.getChat().addMessage(component);
         }
     }
 }

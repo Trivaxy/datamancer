@@ -91,7 +91,7 @@ public class MakeCommand extends DatamancerCommand {
                 .withStyle(ChatFormatting.UNDERLINE)
                 .withStyle(style -> style.withClickEvent(new ClickEvent(ClickEvent.Action.OPEN_FILE, packFolder.toAbsolutePath().toString())));
 
-        replySuccess(context.getSource(), fileLink);
+        replySuccessClientside(fileLink);
         
         return 1;
     }
