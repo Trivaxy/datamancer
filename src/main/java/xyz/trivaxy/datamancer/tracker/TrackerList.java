@@ -7,7 +7,7 @@ public class TrackerList {
     private final List<String> templates;
 
     public TrackerList(List<String> templates) {
-        this.templates = templates;
+        this.templates = new ArrayList<>(templates);
     }
 
     public TrackerList() {
