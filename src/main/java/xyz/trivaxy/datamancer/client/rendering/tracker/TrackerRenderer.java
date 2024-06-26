@@ -34,7 +34,7 @@ public class TrackerRenderer {
             .get();
 
         guiGraphics.drawManaged(() -> {
-            guiGraphics.fill(0, guiGraphics.guiHeight() / 2 - trackerHeight / 2, maxExpandedWidth + font.width("00") + 2, guiGraphics.guiHeight() / 2 + trackerHeight / 2, Minecraft.getInstance().options.getBackgroundColor(0.7f));
+            guiGraphics.fill(0, guiGraphics.guiHeight() / 2 - trackerHeight / 2, maxExpandedWidth + font.width("00") + 2, guiGraphics.guiHeight() / 2 + trackerHeight / 2 + 1, Minecraft.getInstance().options.getBackgroundColor(0.7f));
 
             int y = guiGraphics.guiHeight() / 2 - trackerHeight / 2 + LINE_PADDING;
             int i = 0;
