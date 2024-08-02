@@ -78,7 +78,7 @@ public class FunctionProfileCommand extends DatamancerCommand {
                                     .withStyle(ChatFormatting.UNDERLINE)
                                     .withStyle(style -> style.withClickEvent(new ClickEvent(ClickEvent.Action.OPEN_FILE, FunctionReport.OUTPUT_PATH.toAbsolutePath().toString())));
 
-                            replySuccess(context.getSource(), Component.literal("Report saved to ").append(fileLink));
+                            replySuccessClientside(Component.literal("Report saved to ").append(fileLink));
 
                             return PROFILER.watchCount();
                         })
