@@ -28,16 +28,11 @@ public class FunctionReport {
 
     public String constructTable() {
         return AsciiTable.getTable(
-                AsciiTable.FANCY_ASCII,
-                entries,
-                Arrays.asList(
-                        new Column().header("Function").dataAlign(HorizontalAlign.RIGHT).with(entry -> entry.getFunctionId().toString()),
-                        new Column().header("Mean (μs)").dataAlign(HorizontalAlign.LEFT).with(entry -> String.format("%.5f", entry.calculateMean())),
-                        new Column().header("Standard Deviation (μs)").dataAlign(HorizontalAlign.LEFT).with(entry -> String.format("%.5f", entry.calculateStandardDeviation())),
-                        new Column().header("Min (μs)").dataAlign(HorizontalAlign.LEFT).with(entry -> String.format("%.5f", entry.findMin())),
-                        new Column().header("Max (μs)").dataAlign(HorizontalAlign.LEFT).with(entry -> String.format("%.5f", entry.findMax())),
-                        new Column().header("Iterations").dataAlign(HorizontalAlign.LEFT).with(entry -> String.valueOf(entry.getTotalExecutionCount()))
-                )
+            AsciiTable.FANCY_ASCII,
+            entries,
+            Arrays.stream(FunctionReportColumn.values())
+                .map(column -> new Column().header(column.getName()).dataAlign(column.getAlignment()).with(column::getValueInEntry))
+                .toList()
         );
     }
 
