@@ -2,6 +2,7 @@ package xyz.trivaxy.datamancer.command.placeholder;
 
 import com.mojang.brigadier.StringReader;
 import com.mojang.brigadier.arguments.ArgumentType;
+import com.mojang.brigadier.arguments.FloatArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import net.minecraft.ChatFormatting;
@@ -18,10 +19,15 @@ import net.minecraft.server.ServerScoreboard;
 import net.minecraft.server.commands.data.BlockDataAccessor;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.projectile.ProjectileUtil;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.Property;
 import net.minecraft.world.level.storage.CommandStorage;
+import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.EntityHitResult;
+import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.scores.Objective;
 import net.minecraft.world.scores.ScoreHolder;
@@ -43,125 +49,153 @@ public class Placeholder {
     private final int optionals;
 
     public static final Map<String, Placeholder> PLACEHOLDERS = Map.of(
-            "score", new PlaceholderBuilder()
-                    .argument(ScoreHolderArgument.scoreHolders())
-                    .argument(ObjectiveArgument.objective())
-                    .process((context, arguments) -> {
-                        ServerScoreboard scoreboard = context.getServer().getScoreboard();
-                        Collection<ScoreHolder> scoreHolders = arguments.<ScoreHolderArgument.Result>get(0).getNames(context, Collections::emptyList);
-                        Objective objective = scoreboard.getObjective(arguments.get(1));
+        "score", new PlaceholderBuilder()
+            .argument(ScoreHolderArgument.scoreHolders())
+            .argument(ObjectiveArgument.objective())
+            .process((context, arguments) -> {
+                ServerScoreboard scoreboard = context.getServer().getScoreboard();
+                Collection<ScoreHolder> scoreHolders = arguments.<ScoreHolderArgument.Result>get(0).getNames(context, Collections::emptyList);
+                Objective objective = scoreboard.getObjective(arguments.get(1));
 
-                        if (objective == null)
-                            return Component.literal("None");
+                if (objective == null)
+                    return Component.literal("None");
 
-                        String result = scoreHolders
-                                .stream()
-                                .filter(s -> scoreboard.getPlayerScoreInfo(s, objective) != null)
-                                .map(s -> String.valueOf(scoreboard.getOrCreatePlayerScore(s, objective).get()))
-                                .collect(Collectors.joining(", "));
+                String result = scoreHolders
+                    .stream()
+                    .filter(s -> scoreboard.getPlayerScoreInfo(s, objective) != null)
+                    .map(s -> String.valueOf(scoreboard.getOrCreatePlayerScore(s, objective).get()))
+                    .collect(Collectors.joining(", "));
 
-                        if (result.isBlank())
-                            result = "None";
+                if (result.isBlank())
+                    result = "None";
 
-                        return Component.literal(result);
-                    }),
+                return Component.literal(result);
+            }),
 
-            "entity", new PlaceholderBuilder()
-                    .argument(EntityArgument.entity())
-                    .optional(NbtPathArgument.nbtPath())
-                    .process((context, arguments) -> {
-                        EntitySelector entitySelector = arguments.get(0);
-                        Entity entity = null;
+        "entity", new PlaceholderBuilder()
+            .argument(EntityArgument.entity())
+            .optional(NbtPathArgument.nbtPath())
+            .process((context, arguments) -> {
+                EntitySelector entitySelector = arguments.get(0);
+                Entity entity = null;
 
-                        try {
-                            entity = entitySelector.findSingleEntity(context);
-                        } catch (CommandSyntaxException e) {
-                            return Component.literal("None");
-                        }
+                try {
+                    entity = entitySelector.findSingleEntity(context);
+                } catch (CommandSyntaxException e) {
+                    return Component.literal("None");
+                }
 
-                        return OurComponentUtils.getPrettyPrintedTag(NbtPredicate.getEntityTagToCompare(entity), arguments.get(1));
-                    }),
-            "block", new PlaceholderBuilder()
-                    .argument(BlockPosArgument.blockPos())
-                    .optional(NbtPathArgument.nbtPath())
-                    .process((context, arguments) -> {
-                        Coordinates coords = arguments.get(0);
-                        BlockPos pos = coords.getBlockPos(context);
-                        ServerLevel level = context.getLevel();
+                return OurComponentUtils.getPrettyPrintedTag(NbtPredicate.getEntityTagToCompare(entity), arguments.get(1));
+            }),
+        "block", new PlaceholderBuilder()
+            .argument(BlockPosArgument.blockPos())
+            .optional(NbtPathArgument.nbtPath())
+            .process((context, arguments) -> {
+                Coordinates coords = arguments.get(0);
+                BlockPos pos = coords.getBlockPos(context);
+                ServerLevel level = context.getLevel();
 
-                        if (!level.isLoaded(pos))
-                            return Component.literal("Unloaded");
+                if (!level.isLoaded(pos))
+                    return Component.literal("Unloaded");
 
-                        BlockEntity blockEntity = level.getBlockEntity(pos);
+                BlockEntity blockEntity = level.getBlockEntity(pos);
 
-                        if (blockEntity == null)
-                            return Component.literal("None");
+                if (blockEntity == null)
+                    return Component.literal("None");
 
-                        return OurComponentUtils.getPrettyPrintedTag(new BlockDataAccessor(blockEntity, pos).getData(), arguments.get(1));
-                    }),
-            "storage", new PlaceholderBuilder()
-                    .argument(ResourceLocationArgument.id())
-                    .optional(NbtPathArgument.nbtPath())
-                    .process((context, arguments) -> {
-                        CommandStorage storage = context.getServer().getCommandStorage();
+                return OurComponentUtils.getPrettyPrintedTag(new BlockDataAccessor(blockEntity, pos).getData(), arguments.get(1));
+            }),
+        "storage", new PlaceholderBuilder()
+            .argument(ResourceLocationArgument.id())
+            .optional(NbtPathArgument.nbtPath())
+            .process((context, arguments) -> {
+                CommandStorage storage = context.getServer().getCommandStorage();
 
-                        return OurComponentUtils.getPrettyPrintedTag(storage.get(arguments.get(0)), arguments.get(1));
-                    }),
-            "list", new PlaceholderBuilder()
-                    .argument(EntityArgument.entities())
-                    .process((context, argument) -> {
-                        EntitySelector entitySelector = argument.get(0);
-                        List<? extends Entity> entities = entitySelector.findEntities(context);
+                return OurComponentUtils.getPrettyPrintedTag(storage.get(arguments.get(0)), arguments.get(1));
+            }),
+        "list", new PlaceholderBuilder()
+            .argument(EntityArgument.entities())
+            .process((context, argument) -> {
+                EntitySelector entitySelector = argument.get(0);
+                List<? extends Entity> entities = entitySelector.findEntities(context);
 
-                        if (entities.isEmpty())
-                            return Component.literal("None");
+                if (entities.isEmpty())
+                    return Component.literal("None");
 
-                        return OurComponentUtils.joinComponents(entities.stream().map(Entity::getDisplayName).collect(Collectors.toList()), ", ");
-                    }),
-            "state", new PlaceholderBuilder()
-                    .argument(BlockPosArgument.blockPos())
-                    .process((context, argument) -> {
-                        Coordinates coords = argument.get(0);
-                        BlockPos pos = coords.getBlockPos(context);
-                        ServerLevel level = context.getLevel();
+                return OurComponentUtils.joinComponents(entities.stream().map(Entity::getDisplayName).collect(Collectors.toList()), ", ");
+            }),
+        "state", new PlaceholderBuilder()
+            .argument(BlockPosArgument.blockPos())
+            .process((context, argument) -> {
+                Coordinates coords = argument.get(0);
+                BlockPos pos = coords.getBlockPos(context);
+                ServerLevel level = context.getLevel();
 
-                        if (!level.isLoaded(pos))
-                            return Component.literal("Unloaded");
+                if (!level.isLoaded(pos))
+                    return Component.literal("Unloaded");
 
-                        return prettyPrintBlockState(level.getBlockState(pos));
-                    }),
-            "at", new PlaceholderBuilder()
-                    .optional(EntityArgument.entities())
-                    .process((context, argument) -> {
-                        EntitySelector entitySelector = argument.get(0);
+                return prettyPrintBlockState(level.getBlockState(pos));
+            }),
+        "at", new PlaceholderBuilder()
+            .optional(EntityArgument.entities())
+            .process((context, argument) -> {
+                EntitySelector entitySelector = argument.get(0);
 
-                        if (entitySelector == null)
-                            return prettyPrintPositions(Collections.singletonList(context.getPosition()));
+                if (entitySelector == null)
+                    return prettyPrintPositions(Collections.singletonList(context.getPosition()));
 
-                        List<? extends Entity> entities = entitySelector.findEntities(context);
+                List<? extends Entity> entities = entitySelector.findEntities(context);
 
-                        if (entities.isEmpty())
-                            return Component.literal("None");
+                if (entities.isEmpty())
+                    return Component.literal("None");
 
-                        return prettyPrintPositions(entities.stream().map(Entity::position).collect(Collectors.toList()));
-                    }),
-            "count", new PlaceholderBuilder()
-                    .argument(EntityArgument.entities())
-                    .process((context, argument) -> {
-                        EntitySelector entitySelector = argument.get(0);
-                        List<? extends Entity> entities = entitySelector.findEntities(context);
+                return prettyPrintPositions(entities.stream().map(Entity::position).collect(Collectors.toList()));
+            }),
+        "count", new PlaceholderBuilder()
+            .argument(EntityArgument.entities())
+            .process((context, argument) -> {
+                EntitySelector entitySelector = argument.get(0);
+                List<? extends Entity> entities = entitySelector.findEntities(context);
 
-                        return Component.literal(String.valueOf(entities.size()));
-                    }),
-            "time", new PlaceholderBuilder()
-                    .argument(StringArgumentType.word())
-                    .process((context, argument) -> switch ((String) argument.get(0)) {
-                        case "daytime" -> Component.literal(String.valueOf(context.getLevel().getDayTime() % 24000L));
-                        case "gametime" -> Component.literal(String.valueOf(context.getLevel().getGameTime() % 2147483647L));
-                        case "day" -> Component.literal(String.valueOf(context.getLevel().getDayTime() / 24000L % 2147483647L));
-                        case "realtime" -> Component.literal(DateTimeFormatter.ofLocalizedDateTime(FormatStyle.SHORT).format(LocalDateTime.now()));
-                        default -> Component.literal("None");
-                    })
+                return Component.literal(String.valueOf(entities.size()));
+            }),
+        "time", new PlaceholderBuilder()
+            .argument(StringArgumentType.word())
+            .process((context, argument) -> switch ((String) argument.get(0)) {
+                case "daytime" -> Component.literal(String.valueOf(context.getLevel().getDayTime() % 24000L));
+                case "gametime" -> Component.literal(String.valueOf(context.getLevel().getGameTime() % 2147483647L));
+                case "day" -> Component.literal(String.valueOf(context.getLevel().getDayTime() / 24000L % 2147483647L));
+                case "realtime" ->
+                    Component.literal(DateTimeFormatter.ofLocalizedDateTime(FormatStyle.SHORT).format(LocalDateTime.now()));
+                default -> Component.literal("None");
+            }),
+        "looking", new PlaceholderBuilder()
+                .optional(EntityArgument.entity())
+                .optional(FloatArgumentType.floatArg(0, 100))
+                .process((context, argument) -> {
+                    Entity entity = context.getEntity();
+
+                    EntitySelector entitySelector = argument.get(0);
+                    if (entitySelector != null)
+                        entity = entitySelector.findSingleEntity(context);
+
+                    float range = 10;
+                    if (argument.get(1) != null)
+                        range = argument.get(1);
+
+                    if (entity == null)
+                        return Component.literal("None");
+
+                    HitResult result = ProjectileUtil.getHitResultOnViewVector(entity, entity1 -> !entity1.isSpectator() && entity1.isPickable(), range);
+
+                    if (result instanceof BlockHitResult block) {
+                        return prettyPrintBlockState(context.getLevel().getBlockState(block.getBlockPos()));
+                    } else if (result instanceof EntityHitResult entityHit) {
+                        return entityHit.getEntity().getDisplayName();
+                    }
+
+                    throw new IllegalStateException("{looking} failed to run");
+                })
     );
 
     public Placeholder(List<ArgumentType<?>> argumentTypes, int optionals, PlaceholderProcessor processor) {
