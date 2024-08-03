@@ -83,9 +83,13 @@ public class FunctionProfiler {
         timestampStack.clear();
     }
 
-    public FunctionReport getReport() {
+    public FunctionReport getReport(FunctionReportColumn sortByColumn, boolean ascending) {
         return new FunctionReport(
-            performances.values().stream().filter(entry -> entry.getTotalExecutionCount() != 0).collect(Collectors.toList()),
+            performances.values()
+                .stream()
+                .filter(entry -> entry.getTotalExecutionCount() != 0)
+                .sorted(ascending ? sortByColumn.getComparator() : sortByColumn.getComparator().reversed())
+                .toList(),
             overflowCount,
             overflowStacktrace
         );

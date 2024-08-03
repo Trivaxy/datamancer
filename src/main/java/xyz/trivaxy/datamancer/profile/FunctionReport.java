@@ -2,7 +2,6 @@ package xyz.trivaxy.datamancer.profile;
 
 import com.github.freva.asciitable.AsciiTable;
 import com.github.freva.asciitable.Column;
-import com.github.freva.asciitable.HorizontalAlign;
 import net.minecraft.resources.ResourceLocation;
 
 import java.io.FileWriter;
@@ -31,7 +30,7 @@ public class FunctionReport {
             AsciiTable.FANCY_ASCII,
             entries,
             Arrays.stream(FunctionReportColumn.values())
-                .map(column -> new Column().header(column.getName()).dataAlign(column.getAlignment()).with(column::getValueInEntry))
+                .map(column -> new Column().header(column.getColumnHeaderName()).dataAlign(column.getAlignment()).with(column::getValueInEntry))
                 .toList()
         );
     }
