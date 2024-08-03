@@ -39,7 +39,7 @@ public class FunctionProfileCommand extends DatamancerCommand {
                 .then(literal("stop")
                         .executes(context -> {
                             if (!PROFILER.isEnabled()) {
-                                replyFailure(context.getSource(), Component.literal("Not watching any functions"));
+                                replyFailure(context.getSource(), Component.literal("Profiler is already stopped"));
                                 return 0;
                             }
 
