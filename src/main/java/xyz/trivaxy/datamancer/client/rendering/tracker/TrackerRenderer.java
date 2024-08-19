@@ -22,7 +22,7 @@ public class TrackerRenderer {
     private static final int MAX_VALUE_LENGTH = 8;
 
     public static void renderTracker(GuiGraphics guiGraphics, DeltaTracker delta) {
-        if (entries.isEmpty())
+        if (entries.isEmpty() || Minecraft.getInstance().options.smoothCamera)
             return;
 
         Font font = Minecraft.getInstance().font;
